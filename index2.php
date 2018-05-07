@@ -230,6 +230,65 @@ class RacingZoneScraper {
         return number_format((float)$result, 2, '.', '');
     }
     private function save_record($record) {
+        $explodedPosition = explode('/', $record["pos"]);
+
+        if($explodedPosition[0] == "1")
+        {
+            $record["mrg"] = 0;
+        }
+
+
+        $initialDistance = $record["distance"];
+
+        $thousands =  intval($initialDistance/1000);
+
+
+        $thousandsModule = $initialDistance%1000;
+
+
+        $hundrends = intval($thousandsModule/100);
+        $tens = $initialDistance/10;
+
+        if($thousands < 1)
+        {
+            $record["distance"] = ($hundrends * 100);
+        }
+        else
+        {
+            $record["distance"] = ($thousands * 1000) + ($hundrends * 100);
+        }
+
+
+        $difference = $initialDistance - $record["distance"];
+        
+        if($difference > 0)
+        {
+            $seconds = 0;
+
+            if($initialDistance < 1000)
+            {
+                $seconds = 10;
+            }
+
+            if($initialDistance < 1100 && $initialDistance >= 1000)
+            {
+                $seconds = 5;
+            }
+
+            if($initialDistance >= 1100)
+            {
+                $seconds = 7;
+            }
+
+            $toMinusTime = $seconds *  $difference;
+
+
+            $record["time2"] = $record["time2"] - ($toMinusTime * 0.001);
+
+        }
+
+
+
         $this->_stmt_data->bind_param("sssssssssssss", $record["race_date"], $record["horse_id"], $record["name"], $record["track"], $record["mrg"], $record["condition"], $record["distance"], $record["pos"], $record["weight"], $record["prize"], $record["time"], $record["sectional"], $record["time2"]);
         if (!$this->_stmt_data->execute()) {
             $msg = "[" . date("Y-m-d H:i:s") . "] Insert failed: " . $this->_stmt_data->error;
