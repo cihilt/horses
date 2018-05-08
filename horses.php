@@ -40,8 +40,10 @@ $result = $conn->query($sql);
                             <th>Horse Name</th>
                              <th>Odds</th>
                             <th>H2H</th>
+                            <th>Position</th>
                             <th>Length</th>
                             <th>Condition</th>
+                            <th>Orig Dist</th>
                             <th>Distance</th>
                             <th>Weight</th>
                             <th>Sectional</th>
@@ -59,8 +61,10 @@ $result = $conn->query($sql);
                                 . "<td>" . $row["horse_name"] . "</td>"
                                 . "<td>" . $row["horse_fixed_odds"] . "</td>"
                                          . "<td>" . $row["horse_h2h"] . "</td>"
+                                         . "<td>" . $row["pos"] . "</td>"
                                          . "<td>" . $row["length"] . "</td>"
                                          . "<td>" . $row["condition"] . "</td>"
+                                         . "<td>" . $row["original_distance"] . "</td>"
                                          . "<td>" . $row["distance"] . "</td>"
                                          . "<td>" . $row["weight"] . "</td>"
                                          . "<td>" . $row["sectional"] . "</td>"
