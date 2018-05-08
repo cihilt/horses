@@ -28,6 +28,11 @@ $result = $conn->query($sql);
         <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/1.0.3/css/dataTables.responsive.css">
         <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/responsive/1.0.3/js/dataTables.responsive.js"></script>
 
+<link rel="stylesheet" id="main-css" href="main.css" type="text/css" media="all">
+<ul>
+  <li><a href="meeting.php" class="active">Home</a></li>
+  <li><a href="meeting.php">Meetings</a></li>
+ </ul>
 
     <div class="container">
         <div class="">
