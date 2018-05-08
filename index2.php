@@ -315,6 +315,32 @@ class RacingZoneScraper {
 	    	// First place, leave it as it is
 	    	$record['time2'] = $record['time'];
 	    }
+
+
+        $initialDistance = $record["distance"];
+
+        $thousands =  intval($initialDistance/1000);
+
+
+        $thousandsModule = $initialDistance%1000;
+
+
+        $hundrends = intval($thousandsModule/100);
+        $tens = $initialDistance/10;
+
+        if($thousands < 1)
+        {
+            $record["distance"] = ($hundrends * 100);
+        }
+        else
+        {
+            $record["distance"] = ($thousands * 1000) + ($hundrends * 100);
+        }
+
+
+        //$record["original_distance"] = $record["distance"];
+
+
 //	    echo '----'.$place.'---';
 //	    if ($record['time'] != $record['time2'])
 //	    {
