@@ -47,7 +47,7 @@ if ($result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
         echo "<tr>"
         . "<td>" . $row["race_title"] . "</td>"
-        . "<td><a href=horses.php?raceid=" . $row['race_id'] . ">" . $row["race_number"] . "</a></td>"
+        . "<td><a href=horses.php?raceid=" . $row['race_number'] . ">" . $row["race_id"] . "</a></td>"
         . "<td>" . $row["race_schedule_time"] . "</td>"
         . "</tr>";
     }

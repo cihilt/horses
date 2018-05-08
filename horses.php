@@ -19,7 +19,7 @@ $result = $conn->query($sql);
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <title>Horses Data</title>
-        <link rel="stylesheet" id="font-awesome-style-css" href="http://phpflow.com/code/css/bootstrap3.min.css" type="text/css" media="all">
+ <!--       <link rel="stylesheet" id="font-awesome-style-css" href="http://phpflow.com/code/css/bootstrap3.min.css" type="text/css" media="all">-->
         <script type="text/javascript" charset="utf8" src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.11.1.min.js"></script>
 
         <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.9/css/jquery.dataTables.min.css"/>
@@ -29,11 +29,7 @@ $result = $conn->query($sql);
         <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/responsive/1.0.3/js/dataTables.responsive.js"></script>
 
 <link rel="stylesheet" id="main-css" href="main.css" type="text/css" media="all">
-<ul>
-  <li><a href="meeting.php" class="active">Home</a></li>
-  <li><a href="meeting.php">Meetings</a></li>
- </ul>
-
+<? echo $menu ?>
     <div class="container">
         <div class="">
             <h1>Horses Data</h1>
