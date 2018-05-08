@@ -6,7 +6,7 @@ class RacingZoneScraper {
     protected $_db_post = 3306;
     protected $_db_user = "root";
     protected $_db_password = "";
-    protected $_db_name = "horse";
+    protected $_db_name = "horse2";
     protected $_mysqli;
     protected $_stmt_data;
     protected $_stmt_meetings;
@@ -35,27 +35,27 @@ class RacingZoneScraper {
         $this->_mysqli = $mysqli;
     }
     private function init() {
-        $sql = "INSERT INTO `data` ( `race_date`, `horse_id`, `name`, `track`, `length`, `condition`, `distance`, `pos`, `weight`, `prize`, `time`, `sectional`, `time2` ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )  ON DUPLICATE KEY UPDATE `time2`=`time2`;";
+        $sql = "INSERT INTO `data` ( `race_date`, `horse_id`, `name`, `track`, `length`, `condition`, `distance`, `original_distance`, `pos`, `weight`, `prize`, `time`, `sectional`, `time2` ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )  ON DUPLICATE KEY UPDATE `time2`=`time2`;";
         $stmt_data;
         if (!($stmt_data = $this->_mysqli->prepare($sql))) {
             echo "Prepare failed: (" . $this->_mysqli->errno . ") " . $this->_mysqli->error;
         }
         $this->_stmt_data = $stmt_data;
-        
+
         $sql = "INSERT INTO `meetings` ( `meeting_date`, `meeting_name`, `meeting_url` ) VALUES ( ?, ?, ? );";
         $stmt_meetings;
         if (!($stmt_meetings = $this->_mysqli->prepare($sql))) {
             echo "Prepare failed: (" . $this->_mysqli->errno . ") " . $this->_mysqli->error;
         }
         $this->_stmt_meetings = $stmt_meetings;
-        
+
         $sql = "INSERT INTO `races` ( `meeting_id`, `race_number`, `race_schedule_time`, `race_title` ) VALUES ( ?, ?, ?, ? );";
         $stmt_races;
         if (!($stmt_races = $this->_mysqli->prepare($sql))) {
             echo "Prepare failed: (" . $this->_mysqli->errno . ") " . $this->_mysqli->error;
         }
         $this->_stmt_races = $stmt_races;
-        
+
         $sql = "INSERT INTO `horses` ( `race_id`, `horse_number`, `horse_name`, `horse_weight`, `horse_fixed_odds`, `horse_h2h` ) VALUES ( ?, ?, ?, ?, ?, ? );";
         $stmt_horses;
         if (!($stmt_horses = $this->_mysqli->prepare($sql))) {
@@ -127,14 +127,14 @@ class RacingZoneScraper {
             $horse["horse_weight"] = $xpath->evaluate('string(./td[6]/span/text())', $row);
             $horse["horse_fixed_odds"] = $xpath->evaluate('string(./td[11]/span/a/text())', $row);
             //$horse["horse_h2h"] = $xpath->evaluate('string(./td[4]/span[contains(@class, "h2h")]/text())', $row);
-            
+
             $class = $xpath->evaluate('string(./@class)', $row);
             if (preg_match('/^(\d+)/', $class, $matches)) {
                 $horse["id"] = $matches[1];
             }
-            
+
             if ( preg_match( '/\$\("span.horse' . $horse["id"] . '"\)\.text\("([^"]*)"\)/', $content, $matches ) ) {
-                
+
                 $horse["horse_h2h"] = $matches[1];
             }
             $horse["field_id"] = $xpath->evaluate('string(./@rel)', $row);
@@ -153,9 +153,9 @@ class RacingZoneScraper {
     }
     private function process_meeting($meeting) {
         echo ("\t" . $meeting["place"] . "\t" . $meeting["url"] . "\n");
-        
+
         $meeting_id = $this->save_meeting($meeting);
-        
+
         $content = $this->CallPage($meeting["url"], null, null, $this->_cookiefile);
         $races = $this->parse_races( $content, $meeting_id );
         foreach ($races as $race) {
@@ -164,9 +164,9 @@ class RacingZoneScraper {
     }
     private function process_race($race) {
         echo ("\t\t" . $race["title"] . "\t" . $race["url"] . "\n");
-        
+
         $race_id = $this->save_race($race);
-        
+
         if (preg_match('/\/(\d+)-[^\/]+\/\s*$/', $race["url"], $matches)) {
             $race_site_id = $matches[1];
         }
@@ -178,9 +178,9 @@ class RacingZoneScraper {
     }
     private function process_horse($horse, $race_site_id) {
         echo ("\t\t\t\t" . $horse["id"] . "\n");
-        
+
         $this->save_horse($horse);
-        
+
         $content = $this->CallPage("http://www.racingzone.com.au/past-form-from-results2.php?horse=" . $horse["id"] . "&race_id=" . $race_site_id . "&field_id=" . $horse["field_id"], null, null, $this->_cookiefile);
         $records = $this->parse_horse($content, $horse);
         foreach ($records as $record) {
@@ -207,6 +207,7 @@ class RacingZoneScraper {
             $record["weight"] = $xpath->evaluate('string(./td[9]/text())', $row);
             $record["prize"] = $xpath->evaluate('string(./td[12]/text()[1])', $row);
             $record["time"] = $this->convert_to_minutes($xpath->evaluate('string(./td[13]/text())', $row));
+//            print_r($record);die();
             if ( $record["time"] != 0 ) {
                 $record["sectional"] = $xpath->evaluate('string(./td[14]/text())', $row);
                 $record["time2"] = $this->calculate_modified_time($record["time"], $record["mrg"]);
@@ -216,6 +217,7 @@ class RacingZoneScraper {
         return $records;
     }
     private function convert_to_minutes($time) {
+//    	die($time);
         if (preg_match('/(\d+):/', $time, $matches)) {
             $minutes = $matches[1];
         } else {
@@ -226,77 +228,106 @@ class RacingZoneScraper {
         } else {
             $seconds = 0;
         }
+//        die('--'.$seconds);
         $result = $minutes + $seconds / 60;
         return number_format((float)$result, 2, '.', '');
     }
+
+    private function __get_offset($val) {
+//    	800 -> 899 = 0.77 (10 sec)
+//		900 -> 999 = 0.87 (10 sec)
+//		1000 -> 1099 = 0.97 (5 sec)
+//		1100 -> 1199 = 1.02 (7 sec)
+//		10/ 10 - 1 sec per 10 metres)
+//		5 / 10 = 0.5 sec per 10 metres)
+//		7 / 10 = 0.7 sec per 10 metres)
+	    if ($val >= 800 AND $val <= 999)
+	    {
+	    	return 1;
+	    }
+	    elseif ($val >= 1000 AND $val <= 1099)
+	    {
+	    	return 0.5;
+	    }
+	    elseif ($val >= 1100 AND $val <= 4000)
+	    {
+	    	return 0.7;
+	    }
+	    return 0;
+    }
+
+    private function __process_time2($record) {
+//    	First round up distance to nearest 10
+//    	i.e 833 = 830
+//		Then we round off again to nearest 100.
+//		830-800 (with a remainder of 30)
+//		Then we will use use an algorithm below to determine how much time to
+//		add to the final time.
+		$distance = $record["distance"];
+		if ($distance % 10 < 5)
+		{
+			$distance -= $distance % 10;
+		}
+		else
+		{
+			$distance += (10 - ($distance % 10));
+		}
+		if ($distance % 100 < 50)
+		{
+			$reminder_distance = $distance % 100;
+			$distance -= $reminder_distance;
+		}
+		else
+		{
+			$reminder_distance = (100 - ($distance % 100));
+			$distance += $reminder_distance;
+		}
+		$offset = $this->__get_offset($distance);
+//		echo '^^'.$offset.'^^';
+//		echo '^^'.$reminder_distance.'^^';
+	    $record['distance'] = $distance;
+		$record['time2'] = $reminder_distance * 0.01 * $offset + $record['time2'];
+		return $record;
+    }
+
+    private function __get_place($record)
+    {
+    	try {
+    		$pos = explode('/', $record['pos']);
+    		return intval($pos[0]);
+	    } catch (Exception $e) {
+
+	    }
+    	return 0;
+    }
+
     private function save_record($record) {
-        $explodedPosition = explode('/', $record["pos"]);
 
-        if($explodedPosition[0] == "1")
-        {
-            $record["mrg"] = 0;
-        }
-
-
-        $initialDistance = $record["distance"];
-
-        $thousands =  intval($initialDistance/1000);
-
-
-        $thousandsModule = $initialDistance%1000;
-
-
-        $hundrends = intval($thousandsModule/100);
-        $tens = $initialDistance/10;
-
-        if($thousands < 1)
-        {
-            $record["distance"] = ($hundrends * 100);
-        }
-        else
-        {
-            $record["distance"] = ($thousands * 1000) + ($hundrends * 100);
-        }
-
-
-        $difference = $initialDistance - $record["distance"];
-        
-        if($difference > 0)
-        {
-            $seconds = 0;
-
-            if($initialDistance < 1000)
-            {
-                $seconds = 10;
-            }
-
-            if($initialDistance < 1100 && $initialDistance >= 1000)
-            {
-                $seconds = 5;
-            }
-
-            if($initialDistance >= 1100)
-            {
-                $seconds = 7;
-            }
-
-            $toMinusTime = $seconds *  $difference;
-
-
-            $record["time2"] = $record["time2"] - ($toMinusTime * 0.001);
-
-        }
-
-
-
-        $this->_stmt_data->bind_param("sssssssssssss", $record["race_date"], $record["horse_id"], $record["name"], $record["track"], $record["mrg"], $record["condition"], $record["distance"], $record["pos"], $record["weight"], $record["prize"], $record["time"], $record["sectional"], $record["time2"]);
+    	// Modify time2 to suit our needs
+	    $record['original_distance'] = $record['distance'];
+	    $place = $this->__get_place($record);
+	    if ($place != 1)
+	    {
+	    	$record = $this->__process_time2($record);
+	    }
+	    else
+	    {
+	    	// First place, leave it as it is
+	    	$record['time2'] = $record['time'];
+	    }
+//	    echo '----'.$place.'---';
+//	    if ($record['time'] != $record['time2'])
+//	    {
+//	    	print_r($record);die();
+//	    }
+        $this->_stmt_data->bind_param("ssssssssssssss", $record["race_date"], $record["horse_id"], $record["name"], $record["track"], $record["mrg"], $record["condition"], $record["distance"], $record["original_distance"], $record["pos"], $record["weight"], $record["prize"], $record["time"], $record["sectional"], $record["time2"]);
         if (!$this->_stmt_data->execute()) {
             $msg = "[" . date("Y-m-d H:i:s") . "] Insert failed: " . $this->_stmt_data->error;
             echo $msg . "\n";
             $myfile = file_put_contents('logs.txt', $msg . PHP_EOL, FILE_APPEND | LOCK_EX);
         }
     }
-    
+
     private function save_meeting($meeting) {
         $this->_stmt_meetings->bind_param("sss", $meeting["date"], $meeting["place"], $meeting["url"]);
         if (!$this->_stmt_meetings->execute()) {
@@ -304,10 +335,10 @@ class RacingZoneScraper {
             echo $msg . "\n";
             $myfile = file_put_contents('logs.txt', $msg . PHP_EOL, FILE_APPEND | LOCK_EX);
         }
-        
+
         return $this->_mysqli->insert_id;
     }
-    
+
     private function save_race($race) {
         $this->_stmt_races->bind_param("ssss", $race["meeting_id"], $race["number"], $race["schedule_time"], $race["title"]);
         if (!$this->_stmt_races->execute()) {
@@ -315,10 +346,10 @@ class RacingZoneScraper {
             echo $msg . "\n";
             $myfile = file_put_contents('logs.txt', $msg . PHP_EOL, FILE_APPEND | LOCK_EX);
         }
-        
+
         return $this->_mysqli->insert_id;
     }
-    
+
     private function save_horse($horse) {
         $this->_stmt_horses->bind_param("ssssss", $horse["race_id"], $horse["horse_number"], $horse["horse_name"], $horse["horse_weight"], $horse["horse_fixed_odds"], $horse["horse_h2h"]);
         if (!$this->_stmt_horses->execute()) {
@@ -326,11 +357,11 @@ class RacingZoneScraper {
             echo $msg . "\n";
             $myfile = file_put_contents('logs.txt', $msg . PHP_EOL, FILE_APPEND | LOCK_EX);
         }
-        
+
         return $this->_mysqli->insert_id;
     }
-    
-    
+
+
     private function calculate_modified_time($original_time, $length) {
         $modified_time = "";
         if ($original_time <= 1.19) {
@@ -416,7 +447,7 @@ class RacingZoneScraper {
             //$header[] = 'X-Requested-With: XMLHttpRequest';
             curl_setopt($this->_ch, CURLOPT_POSTFIELDS, $strPostFields);
             //echo "posting $strPostFields";
-            
+
         } else {
             curl_setopt($this->_ch, CURLOPT_HEADER, false);
         }
@@ -436,6 +467,18 @@ class RacingZoneScraper {
     }
 }
 $scraper = new RacingZoneScraper();
+
+//echo $scraper->__process_time2([
+//	'distance' => '833',
+//	'time' => '87.5',
+//]);
+//echo '<hr>';
+//echo $scraper->__process_time2([
+//	'distance' => '846',
+//	'time' => '87.5',
+//]);
+//die();
+
 $scraper->get_data();
 //$scraper->get_data("2018-05-01", "2018-05-04");
 echo ("Done!");
