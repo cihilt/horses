@@ -28,7 +28,11 @@ $result = $conn->query($sql);
         <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/responsive/1.0.3/js/dataTables.responsive.js"></script>
 
 
-    <div class="container">
+<link rel="stylesheet" id="main-css" href="main.css" type="text/css" media="all">
+<? echo $menu; ?>
+
+
+<div class="container">
         <div class="">
             <h1>Race Data</h1>
             <div class="">
@@ -46,8 +50,8 @@ if ($result->num_rows > 0) {
     // output data of each row
     while ($row = $result->fetch_assoc()) {
         echo "<tr>"
+        . "<td><a href=horses.php?raceid=" . $row['race_id'] . ">" . $row["race_number"] . "</a></td>"
         . "<td>" . $row["race_title"] . "</td>"
-        . "<td><a href=horses.php?raceid=" . $row['race_number'] . ">" . $row["race_id"] . "</a></td>"
         . "<td>" . $row["race_schedule_time"] . "</td>"
         . "</tr>";
     }
