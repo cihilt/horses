@@ -6,6 +6,8 @@ if ($conn->connect_error) {
 }
 
 $meetingid = $_REQUEST['meetingid'];
+session_start();
+$_SESSION['mname'] =$_REQUEST['mname'];
 //$sql = "SELECT *, MIN(time) minimumtime,AVG(time) avgtime FROM data WHERE `name` IN (";
 $sql = "SELECT *  FROM races WHERE meeting_id =" . $meetingid." ORDER by race_id";
 
@@ -31,16 +33,16 @@ $result1 = $conn->query($sql);
 
 <link rel="stylesheet" id="main-css" href="main.css" type="text/css" media="all">
 
-<ul> <li><a href="meeting.php" class="active">Home</a></li>
+<ul> <li><a href="meeting.php" >Home</a></li>
       <li><a href="meeting.php">Meetings</a></li>
-
+      <li><a class="active"><?php echo $_SESSION['mname']; ?></a></li>
 
       <?php
 if ($result1->num_rows > 0) {
     // output data of each row
     while ($row = $result1->fetch_assoc()) {
         ?>
-      <li><a target="_blank" href=horses.php?raceid=<?php echo $row['race_id'] ?>><?php echo $row['race_number'] ?></a></li>
+      <li><a href="horses.php?raceid=<?php echo $row['race_id'] ?>&meetingid=<?php echo $meetingid; ?>"><?php echo $row['race_number'] ?></a></li>
   
 
      
@@ -50,7 +52,7 @@ if ($result1->num_rows > 0) {
     ?>
 
  </ul>
-<div class="container">
+<div class="container-fluid">
         <div class="">
             <h1>Race Data</h1>
             <div class="">
@@ -68,7 +70,7 @@ if ($result->num_rows > 0) {
     // output data of each row
     while ($row = $result->fetch_assoc()) {
         echo "<tr>"
-        . "<td><a href=horses.php?raceid=" . $row['race_id'] . ">" . $row["race_number"] . "</a></td>"
+        . "<td>" . $row["race_number"] . "</td>"
         . "<td>" . $row["race_title"] . "</td>"
         . "<td>" . $row["race_schedule_time"] . "</td>"
         . "</tr>";

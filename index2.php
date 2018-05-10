@@ -6,7 +6,7 @@ class RacingZoneScraper {
     protected $_db_post = 3306;
     protected $_db_user = "root";
     protected $_db_password = "";
-    protected $_db_name = "horse2";
+    protected $_db_name = "horses";
     protected $_mysqli;
     protected $_stmt_data;
     protected $_stmt_meetings;
@@ -58,6 +58,7 @@ class RacingZoneScraper {
 
         $sql = "INSERT INTO `horses` ( `race_id`, `horse_number`, `horse_name`, `horse_weight`, `horse_fixed_odds`, `horse_h2h` ) VALUES ( ?, ?, ?, ?, ?, ? );";
         $stmt_horses;
+      
         if (!($stmt_horses = $this->_mysqli->prepare($sql))) {
             echo "Prepare failed: (" . $this->_mysqli->errno . ") " . $this->_mysqli->error;
         }
