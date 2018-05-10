@@ -272,10 +272,12 @@ class RacingZoneScraper {
 		{
 			$distance += (10 - ($distance % 10));
 		}
+	    	$sign = 1.0;
 		if ($distance % 100 < 50)
 		{
 			$reminder_distance = $distance % 100;
 			$distance -= $reminder_distance;
+			$sign = -1.0;
 		}
 		else
 		{
@@ -286,7 +288,7 @@ class RacingZoneScraper {
 //		echo '^^'.$offset.'^^';
 //		echo '^^'.$reminder_distance.'^^';
 	    $record['distance'] = $distance;
-		$record['time2'] = $reminder_distance * 0.01 * $offset + $record['time2'];
+		$record['time2'] = $sign * $reminder_distance * 0.01 * $offset + $record['time2'];
 		return $record;
     }
 
