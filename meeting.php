@@ -29,6 +29,7 @@ $result = $conn->query($sql);
 <ul>
   <li><a href="meeting.php" class="active">Home</a></li>
   <li><a href="meeting.php">Meetings</a></li>
+  
 </ul>
 
     <div class="container">
