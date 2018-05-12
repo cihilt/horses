@@ -2,11 +2,11 @@
 date_default_timezone_set('Europe/London');
 class RacingZoneScraper {
     protected $_base_url = "http://www.racingzone.com.au/form-guide/";
-    protected $_db_host = "localhost";
+    protected $_db_host = "anekdo00.mysql.tools";
     protected $_db_post = 3306;
-    protected $_db_user = "root";
-    protected $_db_password = "";
-    protected $_db_name = "horses";
+    protected $_db_user = "anekdo00_dev";
+    protected $_db_password = "b4tn7795";
+    protected $_db_name = "anekdo00_dev";
     protected $_mysqli;
     protected $_stmt_data;
     protected $_stmt_meetings;
@@ -49,14 +49,14 @@ class RacingZoneScraper {
         }
         $this->_stmt_meetings = $stmt_meetings;
 
-        $sql = "INSERT INTO `races` ( `meeting_id`, `race_number`, `race_schedule_time`, `race_title` ) VALUES ( ?, ?, ?, ? );";
+        $sql = "INSERT INTO `races` ( `meeting_id`, `race_number`, `race_schedule_time`, `race_title`, `race_distance` ) VALUES ( ?, ?, ?, ?, ? );";
         $stmt_races;
         if (!($stmt_races = $this->_mysqli->prepare($sql))) {
             echo "Prepare failed: (" . $this->_mysqli->errno . ") " . $this->_mysqli->error;
         }
         $this->_stmt_races = $stmt_races;
 
-        $sql = "INSERT INTO `horses` ( `race_id`, `horse_number`, `horse_name`, `horse_weight`, `horse_fixed_odds`, `horse_h2h` ) VALUES ( ?, ?, ?, ?, ?, ? );";
+        $sql = "INSERT INTO `horses` ( `race_id`, `horse_number`, `horse_name`, `horse_weight`, `horse_fixed_odds`, `horse_h2h`, `horse_latest_results` ) VALUES ( ?, ?, ?, ?, ?, ?, ? );";
         $stmt_horses;
       
         if (!($stmt_horses = $this->_mysqli->prepare($sql))) {
@@ -109,6 +109,8 @@ class RacingZoneScraper {
             $race["schedule_time"] = $xpath->evaluate('string(./td[2]/text())', $row);
             $race["url"] = $xpath->evaluate('string(./td[3]/a/@href)', $row);
             $race["url"] = "http://www.racingzone.com.au" . $race["url"];
+            $race["distance"] = $xpath->evaluate('string(./td[6]/text())', $row);
+            $race["distance"] = (int) str_replace('m', '', $race["distance"]);
             array_push($races, $race);
         }
         return $races;
@@ -128,6 +130,9 @@ class RacingZoneScraper {
             $horse["horse_weight"] = $xpath->evaluate('string(./td[6]/span/text())', $row);
             $horse["horse_fixed_odds"] = $xpath->evaluate('string(./td[11]/span/a/text())', $row);
             //$horse["horse_h2h"] = $xpath->evaluate('string(./td[4]/span[contains(@class, "h2h")]/text())', $row);
+            
+            $horse["horse_latest_results"] = $xpath->evaluate('string(./td[3]/@title)', $row);
+            $horse["horse_latest_results"] = str_replace(array('<b>', '</b>'), '', $horse["horse_latest_results"]);
 
             $class = $xpath->evaluate('string(./@class)', $row);
             if (preg_match('/^(\d+)/', $class, $matches)) {
@@ -369,7 +374,7 @@ class RacingZoneScraper {
     }
 
     private function save_race($race) {
-        $this->_stmt_races->bind_param("ssss", $race["meeting_id"], $race["number"], $race["schedule_time"], $race["title"]);
+        $this->_stmt_races->bind_param("sssss", $race["meeting_id"], $race["number"], $race["schedule_time"], $race["title"], $race["distance"]);
         if (!$this->_stmt_races->execute()) {
             $msg = "[" . date("Y-m-d H:i:s") . "] Insert failed: " . $this->_stmt_races->error;
             echo $msg . "\n";
@@ -380,7 +385,7 @@ class RacingZoneScraper {
     }
 
     private function save_horse($horse) {
-        $this->_stmt_horses->bind_param("ssssss", $horse["race_id"], $horse["horse_number"], $horse["horse_name"], $horse["horse_weight"], $horse["horse_fixed_odds"], $horse["horse_h2h"]);
+        $this->_stmt_horses->bind_param("sssssss", $horse["race_id"], $horse["horse_number"], $horse["horse_name"], $horse["horse_weight"], $horse["horse_fixed_odds"], $horse["horse_h2h"], $horse["horse_latest_results"]);
         if (!$this->_stmt_horses->execute()) {
             $msg = "[" . date("Y-m-d H:i:s") . "] Insert failed: " . $this->_stmt_horses->error;
             echo $msg . "\n";
