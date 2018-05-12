@@ -2,11 +2,11 @@
 date_default_timezone_set('Europe/London');
 class RacingZoneScraper {
     protected $_base_url = "http://www.racingzone.com.au/form-guide/";
-    protected $_db_host = "anekdo00.mysql.tools";
+    protected $_db_host = "localhost";
     protected $_db_post = 3306;
-    protected $_db_user = "anekdo00_dev";
-    protected $_db_password = "b4tn7795";
-    protected $_db_name = "anekdo00_dev";
+    protected $_db_user = "root";
+    protected $_db_password = "";
+    protected $_db_name = "horse2";
     protected $_mysqli;
     protected $_stmt_data;
     protected $_stmt_meetings;
