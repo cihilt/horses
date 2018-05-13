@@ -66,7 +66,7 @@ foreach ($tables as $table) {
                         ':distance' => $race_distance
                     );
                     if (!$stmt->execute($data)) {
-                        $msg = "[" . date("Y-m-d H:i:s") . "] Insert failed: " . $this->_stmt_data->error;
+                        $msg = "[" . date("Y-m-d H:i:s") . "] Insert failed: " . $stmt->error;
                         echo $msg . "\n";
                     } else {
                         $insert_counter++;
