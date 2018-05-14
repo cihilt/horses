@@ -80,7 +80,7 @@ if ($result1->num_rows > 0) {
                             <th>Sectional</th>
                             <th>Minimum Time</th>
                             <th>Handicap</th>
-                            <th>New time</th>
+                            <th>time2</th>
                         
                         </tr>
                     </thead>
@@ -131,7 +131,7 @@ if ($result1->num_rows > 0) {
                             <th>Sectional</th>
                             <th>Minimum Time</th>
                             <th>Handicap</th>
-                             <th>New Time</th>
+                             <th>NewTime</th>
                         </tr>
                     </tfoot>
                 </table>
