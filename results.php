@@ -39,6 +39,9 @@ foreach ($tables as $table) {
         $race_event = $row->find('td', 0)->find('a', 0)->plaintext;
         $tds = $row->find('td.popup-race');
         foreach ($tds as $td) {
+            if (empty($td->title)) {
+                continue;
+            }
             $link = $td->find('a', 0)->href;
             $race_link = $base_url.$link;
             $race_html = file_get_html($race_link);
