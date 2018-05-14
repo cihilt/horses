@@ -1,22 +1,5 @@
 <?php
 
-
-$distance = newvalue(2.4,2000,2000,"1/8",2.05);
-echo $distance."<br>---------------<br>";
-
-
-$distance = newvalue(2.4,2044,2000,"1/8",2.05);
-echo $distance."<br>---------------<br>";
-
-$distance = newvalue(2.4,2054,2100,"1/8",2.05);
-echo $distance."<br>---------------<br>";
-
-$distance = newvalue(2.4,2044,2000,"2/8",2.05);
-echo $distance."<br>---------------<br>";
-
-$distance = newvalue(2.4,2050,2100,"2/8",2.05);
-echo $distance."<br>---------------<br>";
-
 function newvalue($length,$distance,$orgdistance,$pos,$time){
     $modifier = 0;
      //Getting the postion of the horse
@@ -24,7 +7,7 @@ $pos =  explode('/', $pos);
     		$position =  intval($pos[0]);
                
           //Getting the value of the modifier      
-if ($distance >= 800 AND $distance <= 999)
+/*if ($distance >= 800 AND $distance <= 999)
 	    {
 	    	$modifier = 1;
 	    }
@@ -35,7 +18,7 @@ if ($distance >= 800 AND $distance <= 999)
 	    elseif ($distance >= 1100 AND $distance <= 4000)
 	    {
 	    	$modifier = 0.07;
-	    }
+	    }*/
             $modifier = 0.03;
             $remainder = get_remainder($distance);
     
