@@ -52,6 +52,20 @@ CREATE TABLE `races` (
   `race_distance` int(7) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+CREATE TABLE `results` (
+  `id` int(11) NOT NULL,
+  `position` int(11) DEFAULT NULL,
+  `horse` varchar(45) DEFAULT NULL,
+  `date` varchar(45) DEFAULT NULL,
+  `event` varchar(45) DEFAULT NULL,
+  `distance` int(7) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+ALTER TABLE `results`
+  ADD PRIMARY KEY (`id`);
+
+ALTER TABLE `results`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `data`
   ADD PRIMARY KEY (`id`),
@@ -65,7 +79,6 @@ ALTER TABLE `meetings`
 
 ALTER TABLE `races`
   ADD PRIMARY KEY (`race_id`);
-
 
 ALTER TABLE `data`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
