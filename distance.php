@@ -1,5 +1,5 @@
 <?php
-$distance = newvalue();
+$distance = newvalue(2.4,2054,2100,"2/8",2.05);
 echo $distance;
 
 function newvalue($length,$distance,$orgdistance,$pos,$time){
@@ -15,14 +15,18 @@ if ($distance >= 800 AND $distance <= 999)
 	    }
 	    elseif ($distance >= 1000 AND $distance <= 1099)
 	    {
-	    	$modifier = 0.5;
+	    	$modifier = 0.05;
 	    }
 	    elseif ($distance >= 1100 AND $distance <= 4000)
 	    {
-	    	$modifier = 0.7;
+	    	$modifier = 0.07;
 	    }
             $remainder = get_remainder($distance);
     
+           echo  $remainder."<br>";
+           
+           echo  $modifier."<br>";
+            
         if($distance!=$orgdistance){
             if($position==1){
                 
@@ -49,6 +53,7 @@ if ($distance >= 800 AND $distance <= 999)
             
 }
 function get_remainder($distance){
+
     if ($distance % 10 < 5)
 		{
 			$distance -= $distance % 10;
@@ -59,7 +64,7 @@ function get_remainder($distance){
 			$distance += (10 - ($distance % 10));
                        
 		}
-	    
+	       
 		if ($distance % 100 < 50)
 		{
 			$reminder_distance = $distance % 100;
@@ -72,30 +77,32 @@ function get_remainder($distance){
 			
                         
 		}
-                $reminder = $reminder_distance*0.01;
+                $reminder = $reminder_distance/10;
                 return $reminder;
 }
 
  //if horse wins   
 function win_rounded_up($time,$length,$modifier,$remainder){
+  //  echo $remainder;
     
-    $newtime =  ($length * $modifier*$remainder)+$time;
+    $newtime =  $time+(0.0007*$remainder);
     return $newtime;
 }
  //if horse wins  
 function win_rounded_down($time,$length,$modifier,$remainder){
-       $newtime =  ($length * $modifier*$remainder)-$time;
+        $newtime =  $time-(0.0007*$remainder);
     return $newtime;
     
 }
  //if horse loses  
 function loses_rounded_up($time,$length,$modifier,$remainder){
-     $newtime =  ($length * $modifier*$remainder)+$time;
+        $newtime =  $time+($length*$modifier)+(0.0007*$remainder);
     return $newtime;
 }
  //if horse loses  
 function loses_rounded_down($time,$length,$modifier,$remainder){
-     $newtime =  ($length * $modifier*$remainder)-$time;
+ 
+     $newtime =  $time+($length*$modifier)-(0.0007*$remainder);
     return $newtime;
 }
 ?>
