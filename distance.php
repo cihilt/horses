@@ -1,5 +1,6 @@
 <?php
-
+$distance = newvalue(9.1, 1225, 1200, 8/9, 1.16);
+echo $distance;
 function newvalue($length,$distance,$orgdistance,$pos,$time){
     $modifier = 0;
      //Getting the postion of the horse

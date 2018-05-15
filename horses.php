@@ -50,7 +50,7 @@ if ($result1->num_rows > 0) {
     // output data of each row
     while ($row = $result1->fetch_assoc()) {
         ?>
-<li><a href=horses.php?raceid=<?php echo $row['race_id'] ?>&meetingid=<?php echo $meetingid; ?> <?php if($row['race_id']==$_REQUEST['raceid']){ ?>class="active" <?php } ?>><?php echo $row['race_number'] ?></a></li>
+<li><a href=horses.php?raceid=<?php echo $row['race_id'] ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $row['race_distance'] ?> <?php if($row['race_id']==$_REQUEST['raceid']){ ?>class="active" <?php } ?>><?php echo $row['race_number'] ?></a></li>
   
 
      
@@ -61,7 +61,7 @@ if ($result1->num_rows > 0) {
 </ul>
     <div class="container-fluid">
         <div class="">
-            <h1>Horses Data</h1>
+            <h1>Horses Data - Distance <?php echo $_REQUEST['rd']; ?></h1>
             <div class="">
                 <table id="employee_grid" class="display" width="100%" cellspacing="0">
                     <thead>
