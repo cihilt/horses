@@ -4,8 +4,13 @@ include('constant.php');
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
-
+session_start();
+if(!isset($_SESSION['mname'])){
+    $_SESSION['mname'] = $_REQUEST['mname'];
+}
 $raceid = $_REQUEST['raceid'];
+
+
 //$sql = "SELECT *, MIN(time) minimumtime,AVG(time) avgtime FROM data WHERE `name` IN (";
 $sql = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2 FROM horses LEFT JOIN data ON horses.horse_name = data.name WHERE horses.race_id =" . $raceid;
 
@@ -13,7 +18,7 @@ $sql .=  " GROUP BY name,`distance`";
 
 $result = $conn->query($sql);
 
-session_start();
+
 $meetingid = $_REQUEST['meetingid'];
 //$sql = "SELECT *, MIN(time) minimumtime,AVG(time) avgtime FROM data WHERE `name` IN (";
 $sql1 = "SELECT *  FROM races WHERE meeting_id =" . $meetingid." ORDER by race_id";
@@ -43,6 +48,7 @@ $result1 = $conn->query($sql1);
 
 <ul> <li><a href="meeting.php">Home</a></li>
       <li><a href="meeting.php">Meetings</a></li>
+       <li><a href="result.php" >Results</a></li>
       <li><a class="active"><?php echo $_SESSION['mname']; ?></a></li>
 
       <?php

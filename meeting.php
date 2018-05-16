@@ -39,6 +39,7 @@ $result = $conn->query($sql);
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 <ul>
   <li><a href="meeting.php">Home</a></li>
+   <li><a href="result.php" >Results</a></li>
   <li><a href="meeting.php" class="active">Meetings</a></li>
   
 </ul>

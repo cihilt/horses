@@ -7,9 +7,9 @@ if ($conn->connect_error) {
 
 $meetingid = $_REQUEST['meetingid'];
 session_start();
-$_SESSION['mname'] =$_REQUEST['mname'];
+$_SESSION['mname'] = $_REQUEST['mname'];
 //$sql = "SELECT *, MIN(time) minimumtime,AVG(time) avgtime FROM data WHERE `name` IN (";
-$sql = "SELECT *  FROM races WHERE meeting_id =" . $meetingid." ORDER by race_id";
+$sql = "SELECT *  FROM races WHERE meeting_id =" . $meetingid . " ORDER by race_id";
 
 
 $result = $conn->query($sql);
@@ -31,28 +31,26 @@ $result1 = $conn->query($sql);
         <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/responsive/1.0.3/js/dataTables.responsive.js"></script>
 
 
-<link rel="stylesheet" id="main-css" href="main.css" type="text/css" media="all">
+        <link rel="stylesheet" id="main-css" href="main.css" type="text/css" media="all">
 
-<ul> <li><a href="meeting.php" >Home</a></li>
-      <li><a href="meeting.php">Meetings</a></li>
-      <li><a class="active"><?php echo $_SESSION['mname']; ?></a></li>
+    <ul> <li><a href="meeting.php" >Home</a></li>
+        <li><a href="meeting.php">Meetings</a></li>
+          <li><a href="result.php" >Results</a></li>
+        <li><a class="active"><?php echo $_SESSION['mname']; ?></a></li>
 
-      <?php
-if ($result1->num_rows > 0) {
-    // output data of each row
-    while ($row = $result1->fetch_assoc()) {
+        <?php
+        if ($result1->num_rows > 0) {
+            // output data of each row
+            while ($row = $result1->fetch_assoc()) {
+                ?>
+                <li><a href="horses.php?raceid=<?php echo $row['race_id'] ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $row['race_distance']; ?>"><?php echo $row['race_number'] ?></a></li>
+             <?php
+            }
+        }
         ?>
-      <li><a href="horses.php?raceid=<?php echo $row['race_id'] ?>&meetingid=<?php echo $meetingid; ?>"><?php echo $row['race_number'] ?></a></li>
-  
 
-     
- <?php
-      
-}}
-    ?>
-
- </ul>
-<div class="container-fluid">
+    </ul>
+    <div class="container-fluid">
         <div class="">
             <h1>Race Data</h1>
             <div class="">
