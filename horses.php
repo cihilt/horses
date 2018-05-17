@@ -94,7 +94,11 @@ if ($result1->num_rows > 0) {
                         if ($result->num_rows > 0) {
                             // output data of each row
                             while ($row = $result->fetch_assoc()) {
-                                $newhandicap = newvalue($row["length"], $row["original_distance"], $row["distance"], $row["pos"], number_format($row["minimumtime"],2));
+                                  $distance = round($row["distance"]/100);
+                                $distance = $distance*100;
+                                $newhandicap = newvalue($row["length"], $row["original_distance"], $distance, $row["pos"], number_format($row["minimumtime"],2));
+                                
+                               // $newhandicap = newvalue($row["length"], $row["original_distance"], $row["distance"], $row["pos"], number_format($row["minimumtime"],2));
                                 
                                 echo "<tr>"
                                 . "<td>" . $row["horse_number"] . "</td>"
