@@ -86,7 +86,6 @@ if ($result1->num_rows > 0) {
                             <th>Sectional</th>
                             <th>Minimum Time</th>
                             <th>Handicap</th>
-                            <th>time2</th>
                         
                         </tr>
                     </thead>
@@ -111,7 +110,6 @@ if ($result1->num_rows > 0) {
                                           . "<td>" . $row["horse_weight"] . "</td>"
                                          . "<td>" . $row["sectional"] . "</td>"
                                          . "<td>" . $row["minimumtime"] . "</td>"
-                                         . "<td>" . number_format($row["time2"],2) . "</td>"
                                          . "<td>" . number_format($newhandicap,3) . "</td>"
                                 . "</tr>";
                             }
