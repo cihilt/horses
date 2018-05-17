@@ -184,7 +184,7 @@ $pos =  explode('/', $pos);
     
          
             
-        if($distance!=$orgdistance){
+        
             if($position==1){
                 
                 if($distance<$orgdistance){
@@ -202,10 +202,7 @@ $pos =  explode('/', $pos);
             }
         return $newtime;
         
-                }else{
-                    $newtime = $time;
-                    return $newtime;
-                }
+                
             
             
 }
