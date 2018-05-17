@@ -94,7 +94,7 @@ if ($result1->num_rows > 0) {
                         if ($result->num_rows > 0) {
                             // output data of each row
                             while ($row = $result->fetch_assoc()) {
-                                  $distance = round($row["distance"]/100);
+                                  $distance = round($row["original_distance"]/100);
                                 $distance = $distance*100;
                                 $newhandicap = newvalue($row["length"], $row["original_distance"], $distance, $row["pos"], number_format($row["minimumtime"],2));
                                 
