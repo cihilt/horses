@@ -109,7 +109,7 @@ if ($result1->num_rows > 0) {
                                          . "<td>" . $row["length"] . "</td>"
                                          . "<td>" . $row["condition"] . "</td>"
                                          . "<td>" . $row["original_distance"] . "</td>"
-                                         . "<td>" . $row["distance"] . "</td>"
+                                         . "<td>" . $distance . "</td>"
                                          . "<td>" . $row["weight"] . "</td>"
                                           . "<td>" . $row["horse_weight"] . "</td>"
                                          . "<td>" . $row["sectional"] . "</td>"
