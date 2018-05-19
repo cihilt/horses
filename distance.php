@@ -1,5 +1,5 @@
 <?php
-$distance = newvalue(9.1, 1225, 1200, 8/9, 1.16);
+$distance = newvalue(2.0, 1550, 1600, 3/9, 1.53);
 echo $distance;
 function newvalue($length,$distance,$orgdistance,$pos,$time){
     $modifier = 0;

@@ -48,9 +48,8 @@ $result = $conn->query($sql);
                 <table id="employee_grid" class="display" width="100%" cellspacing="0">
                     <thead>
                         <tr>
-                            <th>Position</th>
+                            <th>Race ID</th>
                             <th>Horse Name</th>
-                             <th>Race Date</th>
                             <th>Distance</th>
                              <th>Race Name</th>
 
@@ -62,9 +61,8 @@ $result = $conn->query($sql);
                             // output data of each row
                             while ($row = $result->fetch_assoc()) {
                                 echo "<tr>"
-                                . "<td>" . $row["position"] . "</td>"
+                                . "<td>" . $row["race_id"] . "</td>"
                                 . "<td>" . $row["horse"] . "</td>"
-                                . "<td>" . $row["date"] . "</td>"
                                 . "<td>" . $row["distance"] . "</td>"
                                 . "<td><a href='horses.php?rd=".$row['distance']."&raceid=" . $row['race_id'] . "&meetingid=" . $row['meeting_id'] . "&mname=" . $row['race_title'] . "'>" . $row["race_title"] . "</a></td>"
                                 . "</tr>";

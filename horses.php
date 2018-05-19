@@ -72,8 +72,9 @@ $result1 = $conn->query($sql1);
                 <table id="employee_grid" class="display" width="100%" cellspacing="0">
                     <thead>
                         <tr>
-                            <th>Horse No.</th>
-                            <th>Horse Name</th>
+                            <th>No</th>
+                            <th>Name</th>
+                            <th>Form</th>
                             <th>Odds</th>
                             <th>H2H</th>
                             <th>Position</th>
@@ -103,6 +104,7 @@ $result1 = $conn->query($sql1);
                                 echo "<tr>"
                                 . "<td>" . $row["horse_number"] . "</td>"
                                 . "<td>" . $row["horse_name"] . "</td>"
+                                . "<td>" . $row["horse_latest_results"] . "</td>"
                                 . "<td>" . $row["horse_fixed_odds"] . "</td>"
                                 . "<td>" . $row["horse_h2h"] . "</td>"
                                 . "<td>" . $row["pos"] . "</td>"
