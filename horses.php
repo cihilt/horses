@@ -204,7 +204,9 @@ $result2 = $conn->query($sql2);
     </div>
     <script type="text/javascript">
         $(document).ready(function () {
-            $('#employee_grid').DataTable({    initComplete: function () {
+            $('#employee_grid').DataTable({ 
+             "pageLength": 25,     
+            initComplete: function () {
             this.api().columns().every( function () {
                 var column = this;
                 var select = $('<select><option value=""></option></select>')
