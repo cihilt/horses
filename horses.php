@@ -85,13 +85,13 @@ $result2 = $conn->query($sql2);
                             <th>H2H</th>
                             <th>Position</th>
                             <th>Length</th>
-                            <th>Condition</th>
+                            <th>Track</th>
                             <th>Orig Dist</th>
                             <th>Distance</th>
                             <th>Weight</th>
                             <th>Last Weight</th>
                             <th>Sectional</th>
-                            <th>Minimum Time</th>
+                            <th>Min Time</th>
                             <th>Handicap</th>
 
                         </tr>
@@ -257,7 +257,7 @@ $result2 = $conn->query($sql2);
           {
           $modifier = 0.07;
           } */
-        $modifier = 0.03;
+        $modifier = 0.05;
         $remainder = get_remainder($distance);
 
 
