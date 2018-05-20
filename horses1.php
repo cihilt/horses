@@ -82,17 +82,10 @@ $result2 = $conn->query($sql2);
                             <th>Name</th>
                             <th>Form</th>
                             <th>Odds</th>
-                            <th>H2H</th>
-                            <th>Position</th>
-                            <th>Length</th>
-                            <th>Condition</th>
-                            <th>Orig Dist</th>
-                            <th>Distance</th>
+                           
                             <th>Weight</th>
                             <th>Last Weight</th>
-                            <th>Sectional</th>
-                            <th>Minimum Time</th>
-                            <th>Handicap</th>
+                           
 
                         </tr>
                     </thead>
@@ -112,17 +105,10 @@ $result2 = $conn->query($sql2);
                                 . "<td>" . $row["horse_name"] . "</td>"
                                 . "<td>" . $row["horse_latest_results"] . "</td>"
                                 . "<td>" . $row["horse_fixed_odds"] . "</td>"
-                                . "<td>" . $row["horse_h2h"] . "</td>"
-                                . "<td>" . $row["pos"] . "</td>"
-                                . "<td>" . $row["length"] . "</td>"
-                                . "<td>" . $row["condition"] . "</td>"
-                                . "<td>" . $row["original_distance"] . "</td>"
-                                . "<td>" . $distance . "</td>"
+                               
                                 . "<td>" . $row["weight"] . "</td>"
                                 . "<td>" . $row["horse_weight"] . "</td>"
-                                . "<td>" . $row["sectional"] . "</td>"
-                                . "<td>" . $row["minimumtime"] . "</td>"
-                                . "<td>" . number_format($newhandicap, 3) . "</td>"
+                               
                                 . "</tr>";
                             }
                         } else {
@@ -133,21 +119,13 @@ $result2 = $conn->query($sql2);
                     </tbody>
                     <tfoot>
                         <tr>
-                            <th>Horse No.</th>
-                            <th>Horse Name</th>
+                            <th>No</th>
+                            <th>Name</th>
+                            <th>Form</th>
                             <th>Odds</th>
-                            <th>H2H</th>
-                            <th>Position</th>
-                            <th>Length</th>
-                            <th>Condition</th>
-                            <th>Orig Dist</th>
-                            <th>Distance</th>
+                           
                             <th>Weight</th>
                             <th>Last Weight</th>
-                            <th>Sectional</th>
-                            <th>Minimum Time</th>
-                            <th>Handicap</th>
-                            <th>NewTime</th>
                         </tr>
                     </tfoot>
                 </table>
