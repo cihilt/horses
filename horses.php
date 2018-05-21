@@ -202,7 +202,7 @@ $result2 = $conn->query($sql2);
         </div>
 
     </div>
-    <script type="text/javascript">
+<script type="text/javascript">
         $(document).ready(function () {
             $('#employee_grid').DataTable({ 
              "pageLength": 25,     
