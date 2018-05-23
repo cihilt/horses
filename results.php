@@ -75,27 +75,32 @@ foreach ($tables as $table) {
             $race_table = $race_html->find('table.formguide', 0);
             $race_table_rows = $race_table->find('tr');
             $i = 1;
-            foreach ($race_table_rows as $race_table_row) {
-                if (strpos($race_table_row->class, 'scratch') == false) {
-                    $horse_position = $i;
-                    $horse_name = $race_table_row->find('td.horse a', 0)->plaintext;
-                    $i++;
-                    $stmt = $dbh->prepare('INSERT INTO results (race_id, position, horse, date, event, distance) VALUE(:race_id, :position, :horse, :date, :event, :distance)');
-                    $data = array(
-                        ':race_id' => $race_id,
-                        ':position' => $horse_position,
-                        ':horse' => $horse_name,
-                        ':date' => $today_date_for_db,
-                        ':event' => $meeting_name,
-                        ':distance' => $race_distance
-                    );
-                    if (!$stmt->execute($data)) {
-                        $msg = "[" . date("Y-m-d H:i:s") . "] Insert failed: " . $stmt->error;
-                        echo $msg . "\n";
-                    } else {
-                        $insert_counter++;
+            if ($race_id) {
+                foreach ($race_table_rows as $race_table_row) {
+                    if (strpos($race_table_row->class, 'scratch') == false) {
+                        $horse_position = $i;
+                        $horse_name = $race_table_row->find('td.horse a', 0)->plaintext;
+                        $i++;
+                        $stmt = $dbh->prepare('INSERT IGNORE INTO results (race_id, position, horse, date, event, distance) VALUE(:race_id, :position, :horse, :date, :event, :distance)');
+                        $data = array(
+                            ':race_id' => $race_id,
+                            ':position' => $horse_position,
+                            ':horse' => $horse_name,
+                            ':date' => $today_date_for_db,
+                            ':event' => $meeting_name,
+                            ':distance' => $race_distance
+                        );
+                        if (!$stmt->execute($data)) {
+                            $msg = "[" . date("Y-m-d H:i:s") . "] Insert failed: " . $stmt->error;
+                            echo $msg . "\n";
+                        } else {
+                            $insert_counter++;
+                        }                    
                     }
                 }
+            } else {
+                $msg = "[" . date("Y-m-d H:i:s") . "] Insert failed - race_id is empty by url $race_link";
+                echo $msg . "<br>";
             }
         }
     }
