@@ -12,9 +12,9 @@ $raceid = $_REQUEST['raceid'];
 
 
 //$sql = "SELECT *, MIN(time) minimumtime,AVG(time) avgtime FROM data WHERE `name` IN (";
-$sql = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2 FROM horses LEFT JOIN data ON horses.horse_name = data.name WHERE horses.race_id =" . $raceid;
+$sql = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2 FROM horses LEFT JOIN data ON horses.horse_name = data.name WHERE sectional != '-' AND horse_weight != '' AND horses.race_id =" . $raceid;
 
-$sql .= " GROUP BY name,`distance`";
+$sql .= " GROUP BY name,distance";
 
 $result = $conn->query($sql);
 
@@ -90,6 +90,7 @@ $result2 = $conn->query($sql2);
                         <tr>
                             <th>No</th>
                             <th>Name</th>
+                             <th>Rating</th>
                             <th>Form</th>
                             <th>Odds</th>
                             <th>H2H</th>
@@ -103,7 +104,7 @@ $result2 = $conn->query($sql2);
                             <th>Sectional</th>
                             <th>Minimum Time</th>
                             <th>Handicap</th>
-                              <th>Rating</th>
+                             
 
                         </tr>
                     </thead>
@@ -122,6 +123,7 @@ $result2 = $conn->query($sql2);
                                 echo "<tr>"
                                 . "<td>" . $row["horse_number"] . "</td>"
                                 . "<td>" . $row["horse_name"] . "</td>"
+                              . "<td>" . number_format($rating,0). "</td>"
                                 . "<td>" . $row["horse_latest_results"] . "</td>"
                                 . "<td>" . $row["horse_fixed_odds"] . "</td>"
                                 . "<td>" . $row["horse_h2h"] . "</td>"
@@ -135,7 +137,7 @@ $result2 = $conn->query($sql2);
                                 . "<td>" . $row["sectional"] . "</td>"
                                 . "<td>" . $row["minimumtime"] . "</td>"
                                 . "<td>" . number_format($newhandicap, 3) . "</td>"
-                             . "<td>" . number_format($rating,0). "</td>"
+                          
                                 . "</tr>";
                             }
                         } else {
@@ -148,6 +150,7 @@ $result2 = $conn->query($sql2);
                         <tr>
                             <th>Horse No.</th>
                             <th>Horse Name</th>
+                               <th>Rating</th>
                             <th>Odds</th>
                             <th>H2H</th>
                             <th>Position</th>
@@ -161,7 +164,7 @@ $result2 = $conn->query($sql2);
                             <th>Minimum Time</th>
                             <th>Handicap</th>
                             <th>NewTime</th>
-                               <th>Rating</th>
+                            
                         </tr>
                     </tfoot>
                 </table>

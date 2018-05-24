@@ -101,10 +101,12 @@ $result2 = $conn->query($sql2);
                         if ($result->num_rows > 0) {
                             // output data of each row
                             while ($row = $result->fetch_assoc()) {
+                           
+                               
                                 $distance = round($row["original_distance"] / 100);
                                 $distance = $distance * 100;
                                 $newhandicap = newvalue($row["length"], $row["original_distance"], $distance, $row["pos"], number_format($row["minimumtime"], 2));
-
+                                $newhandi = number_format($newhandicap, 3);
                                 // $newhandicap = newvalue($row["length"], $row["original_distance"], $row["distance"], $row["pos"], number_format($row["minimumtime"],2));
 
                                 echo "<tr>"
@@ -122,7 +124,7 @@ $result2 = $conn->query($sql2);
                                 . "<td>" . $row["horse_weight"] . "</td>"
                                 . "<td>" . $row["sectional"] . "</td>"
                                 . "<td>" . $row["minimumtime"] . "</td>"
-                                . "<td>" . number_format($newhandicap, 3) . "</td>"
+                                . "<td>" .  $newhandi. "</td>"
                                 . "</tr>";
                             }
                         } else {
