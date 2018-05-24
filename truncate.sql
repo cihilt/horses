@@ -77,7 +77,8 @@ ALTER TABLE `races`
   ADD PRIMARY KEY (`race_id`);
 
 ALTER TABLE `results`
-  ADD PRIMARY KEY (`result_id`);
+  ADD PRIMARY KEY (`result_id`),
+  ADD UNIQUE KEY `race_id` (`race_id`,`position`,`horse`);
 
 
 ALTER TABLE `data`
