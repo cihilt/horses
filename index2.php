@@ -54,7 +54,7 @@ class RacingZoneScraper {
 
         $sql = "INSERT INTO `horses` ( `race_id`, `horse_number`, `horse_name`, `horse_weight`, `horse_fixed_odds`, `horse_h2h`, `horse_latest_results` ) VALUES ( ?, ?, ?, ?, ?, ?, ? );";
         $stmt_horses;
-      
+
         if (!($stmt_horses = $this->_mysqli->prepare($sql))) {
             echo "Prepare failed: (" . $this->_mysqli->errno . ") " . $this->_mysqli->error;
         }
@@ -126,7 +126,7 @@ class RacingZoneScraper {
             $horse["horse_weight"] = $xpath->evaluate('string(./td[6]/span/text())', $row);
             $horse["horse_fixed_odds"] = $xpath->evaluate('string(./td[11]/span/a/text())', $row);
             //$horse["horse_h2h"] = $xpath->evaluate('string(./td[4]/span[contains(@class, "h2h")]/text())', $row);
-            
+
             $horse["horse_latest_results"] = $xpath->evaluate('string(./td[3]/@title)', $row);
             $horse["horse_latest_results"] = str_replace(array('<b>', '</b>'), '', $horse["horse_latest_results"]);
 
@@ -359,6 +359,24 @@ class RacingZoneScraper {
     }
 
     private function save_meeting($meeting) {
+        $meeting_id = 0;
+        $stmt = $this->_mysqli->prepare("SELECT meeting_id FROM meetings WHERE meeting_date = ? AND meeting_name = ? LIMIT 1");
+        $stmt->bind_param("ss", $meeting["date"], $meeting["place"]);
+        if ($stmt->execute()) {
+            $stmt->bind_result($meeting_id);
+            while ($stmt->fetch()) {
+                $meeting_id = $meeting_id;
+            }
+            $stmt->close();
+        } else {
+            $msg = "[" . date("Y-m-d H:i:s") . "] Select meeting_id failed";
+            echo $msg . "\n";
+            $myfile = file_put_contents('logs.txt', $msg . PHP_EOL, FILE_APPEND | LOCK_EX);
+        }
+        if ($meeting_id) {
+            return $meeting_id;
+        }
+
         $this->_stmt_meetings->bind_param("sss", $meeting["date"], $meeting["place"], $meeting["url"]);
         if (!$this->_stmt_meetings->execute()) {
             $msg = "[" . date("Y-m-d H:i:s") . "] Insert failed: " . $this->_stmt_meetings->error;
@@ -370,6 +388,24 @@ class RacingZoneScraper {
     }
 
     private function save_race($race) {
+        $race_id = 0;
+        $stmt = $this->_mysqli->prepare("SELECT race_id FROM races WHERE meeting_id = ? AND race_number = ? AND race_schedule_time = ? AND race_title = ? AND race_distance = ? LIMIT 1");
+        $stmt->bind_param("sssss", $race["meeting_id"], $race["number"], $race["schedule_time"], $race["title"], $race["distance"]);
+        if ($stmt->execute()) {
+            $stmt->bind_result($race_id);
+            while ($stmt->fetch()) {
+                $race_id = $race_id;
+            }
+            $stmt->close();
+        } else {
+            $msg = "[" . date("Y-m-d H:i:s") . "] Select race_id failed";
+            echo $msg . "\n";
+            $myfile = file_put_contents('logs.txt', $msg . PHP_EOL, FILE_APPEND | LOCK_EX);
+        }
+        if ($race_id) {
+            return $race_id;
+        }
+
         $this->_stmt_races->bind_param("sssss", $race["meeting_id"], $race["number"], $race["schedule_time"], $race["title"], $race["distance"]);
         if (!$this->_stmt_races->execute()) {
             $msg = "[" . date("Y-m-d H:i:s") . "] Insert failed: " . $this->_stmt_races->error;
@@ -381,6 +417,24 @@ class RacingZoneScraper {
     }
 
     private function save_horse($horse) {
+        $horse_id = 0;
+        $stmt = $this->_mysqli->prepare("SELECT horse_id FROM horses WHERE race_id = ? AND horse_number = ? AND horse_name = ? LIMIT 1");
+        $stmt->bind_param("sss", $horse["race_id"], $horse["horse_number"], $horse["horse_name"]);
+        if ($stmt->execute()) {
+            $stmt->bind_result($horse_id);
+            while ($stmt->fetch()) {
+                $horse_id = $horse_id;
+            }
+            $stmt->close();
+        } else {
+            $msg = "[" . date("Y-m-d H:i:s") . "] Select horse_id failed";
+            echo $msg . "\n";
+            $myfile = file_put_contents('logs.txt', $msg . PHP_EOL, FILE_APPEND | LOCK_EX);
+        }
+        if ($horse_id) {
+            return $horse_id;
+        }
+
         $this->_stmt_horses->bind_param("sssssss", $horse["race_id"], $horse["horse_number"], $horse["horse_name"], $horse["horse_weight"], $horse["horse_fixed_odds"], $horse["horse_h2h"], $horse["horse_latest_results"]);
         if (!$this->_stmt_horses->execute()) {
             $msg = "[" . date("Y-m-d H:i:s") . "] Insert failed: " . $this->_stmt_horses->error;
