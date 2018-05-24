@@ -9,13 +9,9 @@ error_reporting(E_ALL);
 chdir(dirname(__FILE__));
 include_once('simple_html_dom.php');
 
-$db_host = 'localhost';
-$db_name = 'horse2';
-$db_user = 'root';
-$db_pass = '';
-
+include('constant.php');
 try {
-    $dbh = new PDO('mysql:host='.$db_host.';dbname='.$db_name, $db_user, $db_pass);    
+    $dbh = new PDO('mysql:host='.$servername.';dbname='.$dbname, $username, $password);    
 } catch (PDOException $e) {
     print "Error!: " . $e->getMessage() . "<br/>";
     die();

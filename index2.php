@@ -2,11 +2,6 @@
 date_default_timezone_set('Europe/London');
 class RacingZoneScraper {
     protected $_base_url = "http://www.racingzone.com.au/form-guide/";
-    protected $_db_host = "localhost";
-    protected $_db_post = 3306;
-    protected $_db_user = "root";
-    protected $_db_password = "";
-    protected $_db_name = "horse2";
     protected $_mysqli;
     protected $_stmt_data;
     protected $_stmt_meetings;
@@ -26,7 +21,8 @@ class RacingZoneScraper {
         $this->init();
     }
     private function mysql_connect() {
-        $mysqli = new mysqli($this->_db_host, $this->_db_user, $this->_db_password, $this->_db_name);
+        include('constant.php');
+        $mysqli = new mysqli($servername, $username, $password, $dbname);
         if ($mysqli->connect_errno) {
             echo "Failed to connect to MySQL: (" . $mysqli->connect_errno . ") " . $mysqli->connect_error;
             exit;
