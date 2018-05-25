@@ -77,7 +77,7 @@ $result2 = $conn->query($sql2);
     </ul>
     <div class="container-fluid">
       
-            <h1>Horses Rating</h1>
+            <h1>Horses Rating- Distance <?php echo $_REQUEST['rd']; ?></h1>
             <div class="row">
                 <table id="employee_grid" class="display" width="100%" cellspacing="0">
                     <thead>

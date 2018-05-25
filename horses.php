@@ -73,7 +73,7 @@ $result2 = $conn->query($sql2);
     </ul>
     <div class="container-fluid">
       
-            <h1>Horses Data - Distance <?php echo $_REQUEST['rd']; ?> <a href=rating.php?raceid=<?php echo $raceid; ?>&meetingid=<?php echo $meetingid; ?>>View Rating</a></h1>
+            <h1>Horses Data - Distance <?php echo $_REQUEST['rd']; ?> <a href=rating.php?raceid=<?php echo $raceid; ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $_REQUEST['rd']; ?>>View Rating</a></h1>
             <div class="row">
                 <table id="employee_grid" class="display" width="100%" cellspacing="0">
                     <thead>
