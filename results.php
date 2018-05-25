@@ -139,7 +139,7 @@ $( function() {
         </div>
         <button type="submit" class="btn btn-primary">Scrape</button>
       </form>
-      <?php if ($msg['success']) : ?>
+      <?php if (isset($msg['success']) && !empty($msg['success'])) : ?>
       <?php foreach($msg['success'] as $message) : ?>
       <div class="alert alert-success" role="alert">
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -149,7 +149,7 @@ $( function() {
       </div>
       <?php endforeach; ?>
       <?php endif; ?>
-      <?php if ($msg['info']) : ?>
+      <?php if (isset($msg['info']) && !empty($msg['info'])) : ?>
       <?php foreach($msg['info'] as $message) : ?>
       <div class="alert alert-info" role="alert">
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -159,7 +159,7 @@ $( function() {
       </div>
       <?php endforeach; ?>
       <?php endif; ?>
-      <?php if ($msg['danger']) : ?>
+      <?php if (isset($msg['danger']) && !empty($msg['danger'])) : ?>
       <?php foreach($msg['danger'] as $message) : ?>
       <div class="alert alert-danger" role="alert">
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
