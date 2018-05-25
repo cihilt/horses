@@ -62,6 +62,7 @@ CREATE TABLE `results` (
   `distance` int(7) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+ALTER TABLE `data` ADD `handicap` DECIMAL(3,2) NULL AFTER `time2`;
 
 ALTER TABLE `data`
   ADD PRIMARY KEY (`id`),
