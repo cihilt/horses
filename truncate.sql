@@ -62,40 +62,28 @@ CREATE TABLE `results` (
   `distance` int(7) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-ALTER TABLE `data` 
-  ADD `handicap` DATE NOT NULL AFTER `time2`;
-
 ALTER TABLE `data`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `racedate_horseid` (`race_date`,`horse_id`);
-
-ALTER TABLE `horses`
-  ADD PRIMARY KEY (`horse_id`);
-
-ALTER TABLE `meetings`
-  ADD PRIMARY KEY (`meeting_id`);
-
-ALTER TABLE `races`
-  ADD PRIMARY KEY (`race_id`);
-
-ALTER TABLE `results`
-  ADD PRIMARY KEY (`result_id`),
-  ADD UNIQUE KEY `race_id` (`race_id`,`position`,`horse`);
-
-ALTER TABLE `data`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
-ALTER TABLE `horses`
-  MODIFY `horse_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,
+  ADD UNIQUE KEY `racedate_horseid` (`race_date`,`horse_id`),
+  ADD `handicap` DECIMAL(3,2) NOT NULL AFTER `time2`;
 
 ALTER TABLE `meetings`
+  ADD PRIMARY KEY (`meeting_id`),
   MODIFY `meeting_id` int(11) NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `races`
+  ADD PRIMARY KEY (`race_id`),
   MODIFY `race_id` int(11) NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `results`
+  ADD PRIMARY KEY (`result_id`),
+  ADD UNIQUE KEY `race_id` (`race_id`,`position`,`horse`),
   MODIFY `result_id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `horses`
+  ADD PRIMARY KEY (`horse_id`),
+  MODIFY `horse_id` int(11) NOT NULL AUTO_INCREMENT;  
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
