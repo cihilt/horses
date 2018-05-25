@@ -32,8 +32,6 @@ $sql2 = "SELECT *  FROM results LEFT JOIN races ON races.race_id = results.race_
 $result2 = $conn->query($sql2);
 
 
-
-
 ?>
 <!DOCTYPE html>
 <html>
@@ -66,6 +64,7 @@ $result2 = $conn->query($sql2);
         if ($result1->num_rows > 0) {
             // output data of each row
             while ($row = $result1->fetch_assoc()) {
+          
                 ?>
                 <li><a href=horses.php?raceid=<?php echo $row['race_id'] ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $row['race_distance'] ?> <?php if ($row['race_id'] == $_REQUEST['raceid']) { ?>class="active" <?php } ?>><?php echo $row['race_number'] ?></a></li>
 
@@ -88,7 +87,8 @@ $result2 = $conn->query($sql2);
                             
                             <th>Form</th>
                             <th>Odds</th>
-                           
+                             <th>Distance</th>  
+                             <th>Original Distance</th>
                             <th>Sectional</th>
                             <th>Minimum Time</th>
                             <th>Handicap</th>
@@ -119,7 +119,8 @@ $result2 = $conn->query($sql2);
                             
                                 . "<td>" . $row["horse_latest_results"] . "</td>"
                                 . "<td>" . $row["horse_fixed_odds"] . "</td>"
-                              
+                                . "<td>" . $row["original_distance"] . "</td>"
+                                . "<td>" . $distance . "</td>"
                            
                                 . "<td>" . $row["sectional"] . "</td>"
                                 . "<td>" . $row["minimumtime"] . "</td>"
