@@ -62,7 +62,8 @@ CREATE TABLE `results` (
   `distance` int(7) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-ALTER TABLE `data` ADD `handicap` DECIMAL(3,2) NULL AFTER `time2`;
+ALTER TABLE `data` 
+  ADD `handicap` DATE NOT NULL AFTER `time2`;
 
 ALTER TABLE `data`
   ADD PRIMARY KEY (`id`),
@@ -80,7 +81,6 @@ ALTER TABLE `races`
 ALTER TABLE `results`
   ADD PRIMARY KEY (`result_id`),
   ADD UNIQUE KEY `race_id` (`race_id`,`position`,`horse`);
-
 
 ALTER TABLE `data`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
