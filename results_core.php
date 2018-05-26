@@ -52,7 +52,17 @@ foreach ($tables as $table) {
         foreach ($tds as $td) {
             if (empty($td->title)) {
                 continue;
+            }            
+            // get race_date
+            $race_date = date('d/m/y', $str_date);
+            // .get race_date
+            // get race_name
+            $race_name = '';
+            $td_html = str_get_html( $td->title );
+            if ($td_html) {
+                $race_name = $td_html->find('th', 0)->plaintext;
             }
+            // .get race_name
             $link = $td->find('a', 0)->href;
             $race_link = $base_url.$link;
             $race_html = file_get_html($race_link);
@@ -61,7 +71,7 @@ foreach ($tables as $table) {
             $race_distance_span = end($race_distance_spans);
             $race_distance = $race_distance_span->plaintext;
             $race_distance = str_ireplace('m', '', $race_distance);
-            // .get race_distance
+            // .get race_distance            
             // select race_id
             $stmt = $dbh->prepare("SELECT race_id FROM races WHERE meeting_id = ? AND race_number = ? AND race_distance = ?");
             if ($stmt->execute(array($meeting_id, $race_number, $race_distance))) {
@@ -80,9 +90,19 @@ foreach ($tables as $table) {
                         $horse_position = $i;
                         $horse_name = $race_table_row->find('td.horse a', 0)->plaintext;
                         $i++;
-                        $stmt = $dbh->prepare('INSERT IGNORE INTO results (race_id, position, horse, date, event, distance) VALUE(:race_id, :position, :horse, :date, :event, :distance)');
+                        // select data_id
+                        $data_id = null;                        
+                        $stmt = $dbh->prepare("SELECT id FROM data WHERE race_date = ? AND race_name = ? AND name = ? AND track_name = ? LIMIT 1");
+                        if ($stmt->execute(array($race_date, $race_name, $horse_name, $meeting_name))) {
+                            $data_id = $stmt->fetchColumn();
+                        } else {
+                            $msg['danger'][] = "[" . date("Y-m-d H:i:s") . "] Find data_id error: " . $stmt->error;
+                        }
+                        // select data_id
+                        $stmt = $dbh->prepare('INSERT IGNORE INTO results (race_id, data_id, position, horse, date, event, distance) VALUE(:race_id, :data_id, :position, :horse, :date, :event, :distance)');
                         $data = array(
                             ':race_id' => $race_id,
+                            ':data_id' => $data_id,
                             ':position' => $horse_position,
                             ':horse' => $horse_name,
                             ':date' => $today_date_for_db,
