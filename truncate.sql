@@ -81,7 +81,8 @@ ALTER TABLE `races`
 ALTER TABLE `results`
   ADD PRIMARY KEY (`result_id`),
   ADD UNIQUE KEY `race_id` (`race_id`,`position`,`horse`),
-  MODIFY `result_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `result_id` int(11) NOT NULL AUTO_INCREMENT,
+  ADD `data_id` int(11) DEFAULT NULL AFTER `race_id`;
 
 ALTER TABLE `horses`
   ADD PRIMARY KEY (`horse_id`),
