@@ -66,7 +66,9 @@ ALTER TABLE `data`
   ADD PRIMARY KEY (`id`),
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,
   ADD UNIQUE KEY `racedate_horseid` (`race_date`,`horse_id`),
-  ADD `handicap` DECIMAL(3,2) NOT NULL AFTER `time2`;
+  ADD `handicap` DECIMAL(3,2) NOT NULL AFTER `time2`,
+  ADD `race_name` varchar(45) DEFAULT NULL AFTER `race_date`,
+  ADD `track_name` varchar(45) DEFAULT NULL AFTER `track`;
 
 ALTER TABLE `meetings`
   ADD PRIMARY KEY (`meeting_id`),
