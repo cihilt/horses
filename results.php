@@ -135,7 +135,8 @@ $( function() {
       <form method="post">
         <div class="form-group">
           <label for="date">Select date</label>
-          <input type="text" name="date" class="form-control" id="date" placeholder="Select date" required>
+          <input type="text" name="date" class="form-control" id="date" aria-describedby="dateHelp" placeholder="Select date" required>
+          <small id="dateHelp" class="form-text text-muted">Keep in mind that need to run index2.php script first <a href="/index2.php">index2.php</a> for races table filling.</small>
         </div>
         <button type="submit" class="btn btn-primary">Scrape</button>
       </form>
