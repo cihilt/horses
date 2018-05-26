@@ -31,7 +31,7 @@ class RacingZoneScraper {
         $this->_mysqli = $mysqli;
     }
     private function init() {
-        $sql = "INSERT INTO `data` ( `race_date`, `horse_id`, `name`, `track`, `length`, `condition`, `distance`, `original_distance`, `pos`, `weight`, `prize`, `time`, `sectional`, `time2` ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )  ON DUPLICATE KEY UPDATE `time2`=`time2`;";
+        $sql = "INSERT INTO `data` ( `race_date`, `race_name`, `horse_id`, `name`, `track`, `track_name`, `length`, `condition`, `distance`, `original_distance`, `pos`, `weight`, `prize`, `time`, `sectional`, `time2`, `handicap` ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )  ON DUPLICATE KEY UPDATE `time2`=`time2`;";
         $stmt_data;
         if (!($stmt_data = $this->_mysqli->prepare($sql))) {
             echo "Prepare failed: (" . $this->_mysqli->errno . ") " . $this->_mysqli->error;
@@ -201,7 +201,9 @@ class RacingZoneScraper {
             $record["horse_id"] = $meta["id"];
             $record["name"] = $meta["name"];
             $record["race_date"] = $xpath->evaluate('string(./td[1]/text())', $row);
+            $record["race_name"] = $xpath->evaluate('string(./td[7]/text())', $row);
             $record["track"] = $xpath->evaluate('string(./td[2]/text())', $row);
+            $record["track_name"] = $xpath->evaluate('string(./td[2]/@title)', $row);
             $record["distance"] = $xpath->evaluate('string(./td[3]/text()[1])', $row);
             $record["pos"] = $xpath->evaluate('string(./td[4]/strong/text())', $row);
             $record["mrg"] = $xpath->evaluate('string(./td[5]/text())', $row);
@@ -350,7 +352,10 @@ class RacingZoneScraper {
 //	    {
 //	    	print_r($record);die();
 //	    }
-        $this->_stmt_data->bind_param("ssssssssssssss", $record["race_date"], $record["horse_id"], $record["name"], $record["track"], $record["mrg"], $record["condition"], $record["distance"], $record["original_distance"], $record["pos"], $record["weight"], $record["prize"], $record["time"], $record["sectional"], $record["time2"]);
+
+        $record["handicap"] = 0.00;
+
+        $this->_stmt_data->bind_param("sssssssssssssssss", $record["race_date"], $record["race_name"], $record["horse_id"], $record["name"], $record["track"],$record["track_name"],  $record["mrg"], $record["condition"], $record["distance"], $record["original_distance"], $record["pos"], $record["weight"], $record["prize"], $record["time"], $record["sectional"], $record["time2"], $record["handicap"]);
         if (!$this->_stmt_data->execute()) {
             $msg = "[" . date("Y-m-d H:i:s") . "] Insert failed: " . $this->_stmt_data->error;
             echo $msg . "\n";
