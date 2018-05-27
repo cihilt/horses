@@ -10,9 +10,6 @@ class RacingZoneScraper {
     protected $_delay = 2;
     protected $_cookiefile = "";
     protected $_ch;
-    protected $start_date;
-    protected $end_date;
-    protected $msg = array();
     public function __construct() {
         if (!$this->_mysqli) {
             $this->mysql_connect();
@@ -148,7 +145,7 @@ class RacingZoneScraper {
         return $horses;
     }
     private function process_date($date) {
-        $this->msg['info'][] = $date;
+        echo ($date . "\n");
         $content = $this->CallPage($this->_base_url . $date . "/", null, null, $this->_cookiefile);
         $race_meetings = $this->parse_meetings( $content, $date );
         foreach ($race_meetings as $meeting) {
@@ -157,7 +154,7 @@ class RacingZoneScraper {
         sleep(1);
     }
     private function process_meeting($meeting) {
-        $this->msg['info'][] = $meeting["place"] . "\t" . $meeting["url"];
+        echo ("\t" . $meeting["place"] . "\t" . $meeting["url"] . "\n");
 
         $meeting_id = $this->save_meeting($meeting);
 
@@ -168,7 +165,7 @@ class RacingZoneScraper {
         }
     }
     private function process_race($race) {
-        $this->msg['info'][] = $race["title"] . "\t" . $race["url"];
+        echo ("\t\t" . $race["title"] . "\t" . $race["url"] . "\n");
 
         $race_id = $this->save_race($race);
 
@@ -182,7 +179,7 @@ class RacingZoneScraper {
         }
     }
     private function process_horse($horse, $race_site_id) {
-        $this->msg['info'][] = $horse["id"];
+        echo ("\t\t\t\t" . $horse["id"] . "\n");
 
         $this->save_horse($horse);
 
@@ -361,7 +358,7 @@ class RacingZoneScraper {
         $this->_stmt_data->bind_param("sssssssssssssssss", $record["race_date"], $record["race_name"], $record["horse_id"], $record["name"], $record["track"],$record["track_name"],  $record["mrg"], $record["condition"], $record["distance"], $record["original_distance"], $record["pos"], $record["weight"], $record["prize"], $record["time"], $record["sectional"], $record["time2"], $record["handicap"]);
         if (!$this->_stmt_data->execute()) {
             $msg = "[" . date("Y-m-d H:i:s") . "] Insert failed: " . $this->_stmt_data->error;
-            $this->msg['danger'][] = $msg;
+            echo $msg . "\n";
             $myfile = file_put_contents('logs.txt', $msg . PHP_EOL, FILE_APPEND | LOCK_EX);
         }
     }
@@ -378,7 +375,7 @@ class RacingZoneScraper {
             $stmt->close();
         } else {
             $msg = "[" . date("Y-m-d H:i:s") . "] Select meeting_id failed";
-            $this->msg['danger'][] = $msg;
+            echo $msg . "\n";
             $myfile = file_put_contents('logs.txt', $msg . PHP_EOL, FILE_APPEND | LOCK_EX);
         }
         if ($meeting_id) {
@@ -388,7 +385,7 @@ class RacingZoneScraper {
         $this->_stmt_meetings->bind_param("sss", $meeting["date"], $meeting["place"], $meeting["url"]);
         if (!$this->_stmt_meetings->execute()) {
             $msg = "[" . date("Y-m-d H:i:s") . "] Insert failed: " . $this->_stmt_meetings->error;
-            $this->msg['danger'][] = $msg;
+            echo $msg . "\n";
             $myfile = file_put_contents('logs.txt', $msg . PHP_EOL, FILE_APPEND | LOCK_EX);
         }
 
@@ -407,7 +404,7 @@ class RacingZoneScraper {
             $stmt->close();
         } else {
             $msg = "[" . date("Y-m-d H:i:s") . "] Select race_id failed";
-            $this->msg['danger'][] = $msg;
+            echo $msg . "\n";
             $myfile = file_put_contents('logs.txt', $msg . PHP_EOL, FILE_APPEND | LOCK_EX);
         }
         if ($race_id) {
@@ -417,7 +414,7 @@ class RacingZoneScraper {
         $this->_stmt_races->bind_param("sssss", $race["meeting_id"], $race["number"], $race["schedule_time"], $race["title"], $race["distance"]);
         if (!$this->_stmt_races->execute()) {
             $msg = "[" . date("Y-m-d H:i:s") . "] Insert failed: " . $this->_stmt_races->error;
-            $this->msg['danger'][] = $msg;
+            echo $msg . "\n";
             $myfile = file_put_contents('logs.txt', $msg . PHP_EOL, FILE_APPEND | LOCK_EX);
         }
 
@@ -436,7 +433,7 @@ class RacingZoneScraper {
             $stmt->close();
         } else {
             $msg = "[" . date("Y-m-d H:i:s") . "] Select horse_id failed";
-            $this->msg['danger'][] = $msg;
+            echo $msg . "\n";
             $myfile = file_put_contents('logs.txt', $msg . PHP_EOL, FILE_APPEND | LOCK_EX);
         }
         if ($horse_id) {
@@ -446,7 +443,7 @@ class RacingZoneScraper {
         $this->_stmt_horses->bind_param("sssssss", $horse["race_id"], $horse["horse_number"], $horse["horse_name"], $horse["horse_weight"], $horse["horse_fixed_odds"], $horse["horse_h2h"], $horse["horse_latest_results"]);
         if (!$this->_stmt_horses->execute()) {
             $msg = "[" . date("Y-m-d H:i:s") . "] Insert failed: " . $this->_stmt_horses->error;
-            $this->msg['danger'][] = $msg;
+            echo $msg . "\n";
             $myfile = file_put_contents('logs.txt', $msg . PHP_EOL, FILE_APPEND | LOCK_EX);
         }
 
@@ -558,7 +555,7 @@ class RacingZoneScraper {
         return $strData;
     }
 }
-
+$scraper = new RacingZoneScraper();
 
 //echo $scraper->__process_time2([
 //	'distance' => '833',
@@ -571,106 +568,7 @@ class RacingZoneScraper {
 //]);
 //die();
 
-$scraper = new RacingZoneScraper();
-
-if (isset($_POST['start_date']) && !empty($_POST['start_date']) && isset($_POST['end_date']) && !empty($_POST['end_date'])) {
-
-    $scraper = new RacingZoneScraper();
-    
-    
-    $start_date = $_POST['start_date'];
-    
-    $end_date = $_POST['end_date'];
-    
-    
-    $scraper->get_data($start_date, $end_date);
-    
-    $scraper->msg['success'][] = "Done!";
-    
-}
-
+$scraper->get_data();
+//$scraper->get_data("2018-05-01", "2018-05-04");
+echo ("Done!");
 ?>
-
-<!-- Select date form -->
-<!-- jquery -->
-<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-<link rel="stylesheet" href="/resources/demos/style.css">
-<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-<script>
-$( function() {
-    $( ".datepicker" ).datepicker({
-        maxDate: '0',
-        dateFormat: 'yy-mm-dd',
-        onSelect: function(dateText) { // this.value
-            if ( 'start_date' == $(this).attr('id') ) {
-                $( "#end_date" ).datepicker( "option", "minDate", dateText );
-            }
-            if ( 'end_date' == $(this).attr('id') ) {
-                $( "#start_date" ).datepicker( "option", "maxDate", dateText );
-            }
-        }
-    }).datepicker("setDate", new Date());
-} );
-</script>
-<!-- .jquery -->
-<!-- bootstrap -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" crossorigin="anonymous">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" crossorigin="anonymous">
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" crossorigin="anonymous"></script>
-<!-- .bootstrap -->
-<div class="container">
-  <div class="row">
-    <div class="col-md-8 col-md-offset-2">
-      <h1>Scrapping for `data`, `meetings`, `races`, `horses` tables</h1>
-      <form method="post">
-        <div class="row">
-            <div class="col-md-6">
-                <div class="form-group">
-                  <label for="start_date">Select start date</label>
-                  <input type="text" name="start_date" class="form-control datepicker" id="start_date" placeholder="Select start date" required>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="form-group">
-                  <label for="end_date">Select end date</label>
-                  <input type="text" name="end_date" class="form-control datepicker" id="end_date" placeholder="Select rnd date" required>
-                </div>
-            </div>
-        </div>
-        <button type="submit" class="btn btn-primary">Scrape</button>
-      </form>
-      <?php if (isset($scraper->msg['success']) && !empty($scraper->msg['success'])) : ?>
-      <?php foreach($scraper->msg['success'] as $message) : ?>
-      <div class="alert alert-success" role="alert">
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>        
-        <?php echo $message; ?>
-      </div>
-      <?php endforeach; ?>
-      <?php endif; ?>
-      <?php if (isset($scraper->msg['info']) && !empty($scraper->msg['info'])) : ?>
-      <?php foreach($scraper->msg['info'] as $message) : ?>
-      <div class="alert alert-info" role="alert">
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>        
-        <?php echo $message; ?>
-      </div>
-      <?php endforeach; ?>
-      <?php endif; ?>
-      <?php if (isset($scraper->msg['danger']) && !empty($scraper->msg['danger'])) : ?>
-      <?php foreach($scraper->msg['danger'] as $message) : ?>
-      <div class="alert alert-danger" role="alert">
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-        <?php echo $message; ?>
-      </div>
-      <?php endforeach; ?>
-      <?php endif; ?>
-    </div>
-  </div>
-</div>
-<!-- .Select date form -->
