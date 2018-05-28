@@ -8,9 +8,13 @@ if ($conn->connect_error) {
 $sql = "SELECT *  FROM meetings";
 
 
+if(isset($_REQUEST['date'])){
+  
+    $date = $_POST['date'];
+    $sql = "SELECT *  FROM meetings WHERE meeting_date = '$date'";
+}
+
 $result = $conn->query($sql);
-
-
 
 ?>
 
@@ -19,6 +23,7 @@ $result = $conn->query($sql);
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <title>Horses Data</title>
+        
         <link rel="stylesheet" id="font-awesome-style-css" href="http://phpflow.com/code/css/bootstrap3.min.css" type="text/css" media="all">
         <script type="text/javascript" charset="utf8" src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.11.1.min.js"></script>
 
@@ -27,6 +32,7 @@ $result = $conn->query($sql);
         <script type="text/javascript" src="https://cdn.datatables.net/1.10.9/js/jquery.dataTables.min.js"></script>
         <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/1.0.3/css/dataTables.responsive.css">
         <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/responsive/1.0.3/js/dataTables.responsive.js"></script>
+
 
 <link rel="stylesheet" id="main-css" href="main.css" type="text/css" media="all">
 <!-- Latest compiled and minified CSS -->
@@ -45,6 +51,17 @@ $result = $conn->query($sql);
 </ul>
 
     <div class="container">
+         <form method="post">
+        <div class="form-group  col-sm-4">
+          <label for="date">Select date</label>
+          <input type="date" name="date" class="form-control" id="date" aria-describedby="dateHelp" placeholder="Select date" required>
+          </div>
+              <div class="form-group  col-sm-4">
+        <button type="submit" class="btn btn-primary">Show Meetings</button>
+              </div>
+             
+      </form>
+        <div class="clearfix"></div>
         <div class="">
             <h1>Meeting Data</h1>
             <div class="">
