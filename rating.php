@@ -9,13 +9,22 @@ if (!isset($_SESSION['mname'])) {
     $_SESSION['mname'] = $_REQUEST['mname'];
 }
 $raceid = $_REQUEST['raceid'];
-
+$avg = 0;
+if(isset($_REQUEST['avg'])){
+$avg = $_REQUEST['avg'];
+}
 
 //$sql = "SELECT *, MIN(time) minimumtime,AVG(time) avgtime FROM data WHERE `name` IN (";
 //$sql = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2 FROM horses LEFT JOIN data ON horses.horse_name = data.name WHERE sectional != '-' AND horse_weight != '' AND horses.race_id =" . $raceid;
-$sql = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2 FROM horses LEFT JOIN data ON horses.horse_name = data.name WHERE horses.race_id =" . $raceid;
 
-$sql .= " GROUP BY name,distance";
+
+if($avg==1){
+    $sql = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2,AVG(rating) rat FROM horses LEFT JOIN data ON horses.horse_name = data.name WHERE horses.race_id = $raceid  GROUP BY horse_name ORDER BY rat DESC";
+}else{
+  $sql = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2 FROM horses LEFT JOIN data ON horses.horse_name = data.name WHERE horses.race_id =" . $raceid;
+
+$sql .= " GROUP BY id";  
+}
 
 $result = $conn->query($sql);
 
@@ -77,8 +86,15 @@ $result2 = $conn->query($sql2);
     </ul>
     <div class="container-fluid">
       
-            <h1>Horses Rating- Distance <?php echo $_REQUEST['rd']; ?></h1>
-            <div class="row">
+        <h1>Horses Rating- Distance <?php echo $_REQUEST['rd']; ?> 
+            <?php if($avg==1){ ?>
+                 <a href="rating.php?raceid=<?php echo $_REQUEST['raceid'] ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $_REQUEST['rd'] ?>&avg=0">Show All</a></h1>
+           
+               <?php 
+            }else{ ?>
+            <a href="rating.php?raceid=<?php echo $_REQUEST['raceid'] ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $_REQUEST['rd'] ?>&avg=1">Show Average</a></h1>
+            <?php } ?>    
+        <div class="row">
                 <table id="employee_grid" class="display" width="100%" cellspacing="0">
                     <thead>
                         <tr>
@@ -102,14 +118,12 @@ $result2 = $conn->query($sql2);
                         if ($result->num_rows > 0) {
                             // output data of each row
                             while ($row = $result->fetch_assoc()) {
-                                $distance = round($row["original_distance"] / 100);
-                                $distance = $distance * 100;
-                                $newhandicap = newvalue($row["length"], $row["original_distance"], $distance, $row["pos"], number_format($row["minimumtime"], 2));
-                                if(strlen($row["horse_fixed_odds"])>0){
-                                $rating= rating_system($newhandicap,$row["sectional"],$row["weight"],$row["horse_weight"]);
-                                $rating = number_format($rating,0);
+                               
+                                
+                                if($avg==1){
+                                   $rating = number_format($row["rat"],0);
                                 }else{
-                                    $rating = "0";
+                                    $rating = $row["rating"];
                                 }
                                 // $newhandicap = newvalue($row["length"], $row["original_distance"], $row["distance"], $row["pos"], number_format($row["minimumtime"],2));
 
@@ -120,11 +134,12 @@ $result2 = $conn->query($sql2);
                                 . "<td>" . $row["horse_latest_results"] . "</td>"
                                 . "<td>" . $row["horse_fixed_odds"] . "</td>"
                                 . "<td>" . $row["original_distance"] . "</td>"
-                                . "<td>" . $distance . "</td>"
+                                . "<td>" . $row['distance'] . "</td>"
                            
                                 . "<td>" . $row["sectional"] . "</td>"
                                 . "<td>" . $row["minimumtime"] . "</td>"
-                                . "<td>" . number_format($newhandicap, 3) . "</td>"
+                                . "<td>" . number_format($row['handicap'], 3) . "</td>"
+                                        
                             . "<td>" .$rating. "</td>"
                                 . "</tr>";
                             }
