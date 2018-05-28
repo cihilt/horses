@@ -30,9 +30,17 @@ $result = $conn->query($sql);
                                 $distance = $distance * 100;
                                 $newhandicap = newvalue($row["length"], $row["original_distance"], $distance, $row["pos"], number_format($row["minimumtime"], 2));
                                 $newhandi = number_format($newhandicap, 3);
+                                
+                               $rating=0;
+                                if(strlen($row["horse_fixed_odds"])>0){
+                                $rating= rating_system($newhandicap,$row["sectional"],$row["weight"],$row["horse_weight"]);
+                                $rating = number_format($rating,0);
+                                }else{
+                                    $rating = 0;
+                                }
                                 $id = $row['id'];
                                 // $newhandicap = newvalue($row["length"], $row["original_distance"], $row["distance"], $row["pos"], number_format($row["minimumtime"],2));
- $updatehptime = "UPDATE `data` SET `handicap`=$newhandi WHERE id = $id";
+ $updatehptime = "UPDATE `data` SET `handicap`=$newhandi,`rating`=$rating WHERE id = $id";
 echo $updatehptime."<br>";
 echo "-------------------";
  $result2 = $conn->query($updatehptime);
@@ -180,4 +188,74 @@ echo "-------------------";
         $newtime = $time + ($length * $modifier) - (0.0007 * $remainder);
         return $newtime;
     }
+    
+    
+    
+    
+    function rating_system($handicap,$section,$oldweight,$newweight){
+         $pos = explode('/', $section);
+        
+         if(isset($pos[1])){
+              $sectiontime = $pos[1];
+         }else{
+             $sectiontime = 0;
+         }
+       
+        $weight = weight_points($oldweight, $newweight);
+        $handicappoints = 1/$handicap;
+        if($sectiontime==0){
+            $sectionpoints = 0;
+        }else{
+            $sectionpoints = (9/$sectiontime)*100;
+        }
+        $rating = $handicappoints+$sectionpoints+($weight/100);
+        return $rating;
+        
+        
+        
+    }
+    
+    
+
+function weight_points($oldweight,$newweight){
+  
+       $weight =  $newweight-$oldweight;
+       
+        if($weight>3){
+            $wgt = 1.5;
+            return $wgt;
+       
+        }
+        if($weight>2&&$weight<=2.5){
+            $wgt = 1;
+            return $wgt;
+            
+        }
+        if($weight>1&&$weight<=1.5){
+            $wgt = 0.5;
+            return $wgt;
+        }
+        if($weight>0&&$weight<=0.5){
+            $wgt = 1;
+            return $wgt;
+        }
+         if($weight>-0.5&&$weight<=0){
+            $wgt = -1.5;
+            return $wgt;
+        }
+         if($weight>-1&&$weight<=-1.5){
+            $wgt = -2;
+            return $wgt;
+        }
+        if($weight>-1&&$weight<=-2.5){
+            $wgt = -2;
+            return $wgt;
+        }
+        if($weight>-3&&$weight<-2.5){
+            $wgt = -3;
+            return $wgt;
+        }
+             
+    }
+    
     ?>
