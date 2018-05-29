@@ -47,9 +47,7 @@ $result2 = $conn->query($sql2);
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <title>Horses Data</title>
-        <link rel="stylesheet" id="font-awesome-style-css" href="http://phpflow.com/code/css/bootstrap3.min.css" type="text/css" media="all">
-        <script type="text/javascript" charset="utf8" src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.11.1.min.js"></script>
-        <!-- Latest compiled and minified CSS -->
+        <script src=https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js></script> <!-- Latest compiled and minified CSS -->
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 
         <!-- Optional theme -->
@@ -75,7 +73,7 @@ $result2 = $conn->query($sql2);
             while ($row = $result1->fetch_assoc()) {
           
                 ?>
-                <li><a href=horses.php?raceid=<?php echo $row['race_id'] ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $row['race_distance'] ?> <?php if ($row['race_id'] == $_REQUEST['raceid']) { ?>class="active" <?php } ?>><?php echo $row['race_number'] ?></a></li>
+                <li><a href=rating.php?raceid=<?php echo $row['race_id'] ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $row['race_distance'] ?> <?php if ($row['race_id'] == $_REQUEST['raceid']) { ?>class="active" <?php } ?>><?php echo $row['race_number'] ?></a></li>
 
 
 
@@ -98,6 +96,19 @@ $result2 = $conn->query($sql2);
                 <table id="employee_grid" class="display" width="100%" cellspacing="0">
                     <thead>
                         <tr>
+                            <?php      if($avg==1){
+                                ?>
+                             <th>No</th>
+                            <th>Name</th>
+                            
+                            <th>Form</th>
+                            <th>Odds</th>
+                          
+                            <th>Minimum Time</th>
+                            <th>Handicap</th>
+                             <th>Rating</th>
+                            <?php
+                            }else{ ?>
                             <th>No</th>
                             <th>Name</th>
                             
@@ -109,7 +120,7 @@ $result2 = $conn->query($sql2);
                             <th>Minimum Time</th>
                             <th>Handicap</th>
                              <th>Rating</th>
-                             
+                            <?php } ?>
 
                         </tr>
                     </thead>
@@ -126,7 +137,22 @@ $result2 = $conn->query($sql2);
                                     $rating = $row["rating"];
                                 }
                                 // $newhandicap = newvalue($row["length"], $row["original_distance"], $row["distance"], $row["pos"], number_format($row["minimumtime"],2));
-
+     if($avg==1){
+         echo "<tr>"
+                                . "<td>" . $row["horse_number"] . "</td>"
+                                . "<td>" . $row["horse_name"] . "</td>"
+                            
+                                . "<td>" . $row["horse_latest_results"] . "</td>"
+                                . "<td>" . $row["horse_fixed_odds"] . "</td>"
+                                . "<td>" . $row["weight"] . "</td>"
+                           
+                                . "<td>" . number_format($row['handicap'], 3) . "</td>"
+                                        
+                            . "<td>" .$rating. "</td>"
+                                . "</tr>";
+         
+         
+     }else{
                                 echo "<tr>"
                                 . "<td>" . $row["horse_number"] . "</td>"
                                 . "<td>" . $row["horse_name"] . "</td>"
@@ -143,6 +169,8 @@ $result2 = $conn->query($sql2);
                             . "<td>" .$rating. "</td>"
                                 . "</tr>";
                             }
+                            
+     }
                         } else {
                             echo "0 results";
                         }
@@ -151,17 +179,31 @@ $result2 = $conn->query($sql2);
                     </tbody>
                     <tfoot>
                         <tr>
+                              <?php      if($avg==1){
+                                ?>
+                             <th>No</th>
+                            <th>Name</th>
+                            
+                            <th>Form</th>
+                            <th>Odds</th>
+                          
+                            <th>Minimum Time</th>
+                            <th>Handicap</th>
+                             <th>Rating</th>
+                            <?php
+                            }else{ ?>
                             <th>No</th>
                             <th>Name</th>
                             
                             <th>Form</th>
                             <th>Odds</th>
-                           
+                             <th>Distance</th>  
+                             <th>Original Distance</th>
                             <th>Sectional</th>
                             <th>Minimum Time</th>
                             <th>Handicap</th>
                              <th>Rating</th>
-
+                            <?php } ?>
                             
                         </tr>
                     </tfoot>

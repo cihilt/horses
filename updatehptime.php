@@ -1,6 +1,3 @@
-
-///Run this query 
-ALTER TABLE `data` ADD `rating` INT NOT NULL AFTER `handicap`;
 <?php
 include('constant.php');
 // Check connection
