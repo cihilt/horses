@@ -47,20 +47,19 @@ $result2 = $conn->query($sql2);
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <title>Horses Data</title>
-        <script src=https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js></script> <!-- Latest compiled and minified CSS -->
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+         <script src=https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js></script>
+   <!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 
-        <!-- Optional theme -->
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
 
-        <!-- Latest compiled and minified JavaScript -->
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.9/css/jquery.dataTables.min.css"/>
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+        <link rel="stylesheet" id="main-css" href="main.css" type="text/css" media="all">
+     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.9/css/jquery.dataTables.min.css"/>
 
         <script type="text/javascript" src="https://cdn.datatables.net/1.10.9/js/jquery.dataTables.min.js"></script>
-
-
-        <link rel="stylesheet" id="main-css" href="main.css" type="text/css" media="all">
 
     <ul> <li><a href="meeting.php">Home</a></li>
         <li><a href="meeting.php">Meetings</a></li>
@@ -83,16 +82,34 @@ $result2 = $conn->query($sql2);
         ?>
     </ul>
     <div class="container-fluid">
+        
       
-        <h1>Horses Rating- Distance <?php echo $_REQUEST['rd']; ?> 
-            <?php if($avg==1){ ?>
-                 <a href="rating.php?raceid=<?php echo $_REQUEST['raceid'] ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $_REQUEST['rd'] ?>&avg=0">Show All</a></h1>
+        <h1>Horses Rating- Distance <?php echo $_REQUEST['rd']; ?> </h1>
+                <div class="row">
+            <div class="col-md-6  pull-right">
+            
+                <a role="presentation" class="dropdown  pull-right">
+                    <a href="#" class="btn btn-success dropdown-toggle  pull-right" id="drop4" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true"> Select <span class="caret"></span> </a> 
+                    <ul class="dropdown-menu" id="menu1" aria-labelledby="drop4"> 
+                        	
+					 <?php if($avg==1){ ?>
+                        <li>   <a href="horses.php?raceid=<?php echo $_REQUEST['raceid'] ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $_REQUEST['rd'] ?>&avg=0" class="dropdown-item" >Show Horses</a></li>
+                        <li> <a href="horses.php?raceid=<?php echo $_REQUEST['raceid'] ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $_REQUEST['rd'] ?>&avg=0" >Show All</a></li>
            
                <?php 
             }else{ ?>
-            <a href="rating.php?raceid=<?php echo $_REQUEST['raceid'] ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $_REQUEST['rd'] ?>&avg=1">Show Average</a></h1>
-            <?php } ?>    
-        <div class="row">
+            <li>   <a href="horses.php?raceid=<?php echo $_REQUEST['raceid'] ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $_REQUEST['rd'] ?>&avg=0" class="dropdown-item" >Show Horses</a>
+            </li>
+            <li>   <a href="rating.php?raceid=<?php echo $_REQUEST['raceid'] ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $_REQUEST['rd'] ?>&avg=1" class="dropdown-item" >Show Average</a>
+            </li>
+                <?php } ?>   
+                    </ul>                
+				</div>
+			</div>
+        
+          
+          
+         
                 <table id="employee_grid" class="display" width="100%" cellspacing="0">
                     <thead>
                         <tr>
@@ -104,8 +121,8 @@ $result2 = $conn->query($sql2);
                             <th>Form</th>
                             <th>Odds</th>
                           
-                            <th>Minimum Time</th>
-                            <th>Handicap</th>
+                            <th>Weight</th>
+                            <th>Current Weight</th>
                              <th>Rating</th>
                             <?php
                             }else{ ?>
@@ -146,7 +163,7 @@ $result2 = $conn->query($sql2);
                                 . "<td>" . $row["horse_fixed_odds"] . "</td>"
                                 . "<td>" . $row["weight"] . "</td>"
                            
-                                . "<td>" . number_format($row['handicap'], 3) . "</td>"
+                                . "<td>" . $row['horse_weight'] . "</td>"
                                         
                             . "<td>" .$rating. "</td>"
                                 . "</tr>";
@@ -223,6 +240,9 @@ $result2 = $conn->query($sql2);
         <div class="">
             <h1>Race Results</h1>
             <div class="">
+                
+
+
                 <table id="employee_grid1" class="display" width="100%" cellspacing="0">
                     <thead>
                         <tr>
@@ -260,30 +280,30 @@ $result2 = $conn->query($sql2);
 
     </div>
     <script type="text/javascript">
-        $(document).ready(function () {
-            $('#employee_grid').DataTable({ 
-             "pageLength": 25,     
-            initComplete: function () {
-            this.api().columns().every( function () {
-                var column = this;
-                var select = $('<select><option value=""></option></select>')
-                    .appendTo( $(column.footer()).empty() )
-                    .on( 'change', function () {
-                        var val = $.fn.dataTable.util.escapeRegex(
-                            $(this).val()
-                        );
+        $.fn.dataTable.ext.search.push(
+    function( settings, data, dataIndex ) {
+        var min = parseInt( $('#min').val(), 10 );
+        var max = parseInt( $('#max').val(), 10 );
+        var age = parseFloat( data[6] ) || 0; // use data for the age column
  
-                        column
-                            .search( val ? '^'+val+'$' : '', true, false )
-                            .draw();
-                    } );
- 
-                column.data().unique().sort().each( function ( d, j ) {
-                    select.append( '<option value="'+d+'">'+d+'</option>' )
-                } );
-            } );
+        if ( ( isNaN( min ) && isNaN( max ) ) ||
+             ( isNaN( min ) && age <= max ) ||
+             ( min <= age   && isNaN( max ) ) ||
+             ( min <= age   && age <= max ) )
+        {
+            return true;
         }
+        return false;
+    }
+);
+        $(document).ready(function () {
+       $('#employee_grid').DataTable({ 
+             "pageLength": 25,     
+            
             });
+            
+          
+
             
               $('#employee_grid1').DataTable({
 

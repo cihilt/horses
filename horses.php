@@ -9,6 +9,10 @@ if (!isset($_SESSION['mname'])) {
     $_SESSION['mname'] = $_REQUEST['mname'];
 }
 $raceid = $_REQUEST['raceid'];
+$avg = 0;
+if(isset($_REQUEST['avg'])){
+$avg = $_REQUEST['avg'];
+}
 
 
 //$sql = "SELECT *, MIN(time) minimumtime,AVG(time) avgtime FROM data WHERE `name` IN (";
@@ -35,22 +39,20 @@ $result2 = $conn->query($sql2);
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <title>Horses Data</title>
-        <link rel="stylesheet" id="font-awesome-style-css" href="http://phpflow.com/code/css/bootstrap3.min.css" type="text/css" media="all">
-        <script type="text/javascript" charset="utf8" src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.11.1.min.js"></script>
-        <!-- Latest compiled and minified CSS -->
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+       <script src=https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js></script>
+   <!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 
-        <!-- Optional theme -->
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
 
-        <!-- Latest compiled and minified JavaScript -->
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.9/css/jquery.dataTables.min.css"/>
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+        <link rel="stylesheet" id="main-css" href="main.css" type="text/css" media="all">
+     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.9/css/jquery.dataTables.min.css"/>
 
         <script type="text/javascript" src="https://cdn.datatables.net/1.10.9/js/jquery.dataTables.min.js"></script>
 
-
-        <link rel="stylesheet" id="main-css" href="main.css" type="text/css" media="all">
 
     <ul> <li><a href="meeting.php">Home</a></li>
         <li><a href="meeting.php">Meetings</a></li>
@@ -74,7 +76,19 @@ $result2 = $conn->query($sql2);
     <div class="container-fluid">
       
             <h1>Horses Data - Distance <?php echo $_REQUEST['rd']; ?> <a href=rating.php?raceid=<?php echo $raceid; ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $_REQUEST['rd']; ?>>View Rating</a></h1>
-            <div class="row">
+      <div class="row">
+            <div class="col-md-6  pull-right">
+            
+                <a role="presentation" class="dropdown  pull-right">
+                    <a href="#" class="btn btn-success dropdown-toggle  pull-right" id="drop4" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true"> Select <span class="caret"></span> </a> 
+                    <ul class="dropdown-menu" id="menu1" aria-labelledby="drop4"> 
+                        	
+                        <li>   <a href="rating.php?raceid=<?php echo $_REQUEST['raceid'] ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $_REQUEST['rd'] ?>&avg=0" class="dropdown-item" >Show Rating</a></li>
+                        <li> <a href="horses.php?raceid=<?php echo $_REQUEST['raceid'] ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $_REQUEST['rd'] ?>&avg=1" >Show Average</a></li>
+           
+                    </ul>                
+				</div>
+			</div>  
                 <table id="employee_grid" class="display" width="100%" cellspacing="0">
                     <thead>
                         <tr>
