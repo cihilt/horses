@@ -16,7 +16,7 @@ $avg = $_REQUEST['avg'];
 
 
 //$sql = "SELECT *, MIN(time) minimumtime,AVG(time) avgtime FROM data WHERE `name` IN (";
-$sql = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2 FROM horses LEFT JOIN data ON horses.horse_name = data.name WHERE horses.race_id =" . $raceid;
+$sql = "SELECT * , MIN(data.time) minimumtime FROM horses LEFT JOIN data ON horses.horse_name = data.name WHERE horses.race_id =" . $raceid;
 
 $sql .= " GROUP BY name,`distance`";
 
@@ -72,23 +72,13 @@ $result2 = $conn->query($sql2);
             }
         }
         ?>
+                <li class="pull-right">   <a href="rating.php?raceid=<?php echo $_REQUEST['raceid'] ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $_REQUEST['rd'] ?>&avg=0" class="dropdown-item active" >Show Rating</a></li>
+                        <li class="pull-right"> <a href="rating.php?raceid=<?php echo $_REQUEST['raceid'] ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $_REQUEST['rd'] ?>&avg=1" class="dropdown-item active" >Show Average</a></li>
+           
     </ul>
     <div class="container-fluid">
       
-            <h1>Horses Data - Distance <?php echo $_REQUEST['rd']; ?> <a href=rating.php?raceid=<?php echo $raceid; ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $_REQUEST['rd']; ?>>View Rating</a></h1>
-      <div class="row">
-            <div class="col-md-6  pull-right">
-            
-                <a role="presentation" class="dropdown  pull-right">
-                    <a href="#" class="btn btn-success dropdown-toggle  pull-right" id="drop4" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true"> Select <span class="caret"></span> </a> 
-                    <ul class="dropdown-menu" id="menu1" aria-labelledby="drop4"> 
-                        	
-                        <li>   <a href="rating.php?raceid=<?php echo $_REQUEST['raceid'] ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $_REQUEST['rd'] ?>&avg=0" class="dropdown-item" >Show Rating</a></li>
-                        <li> <a href="horses.php?raceid=<?php echo $_REQUEST['raceid'] ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $_REQUEST['rd'] ?>&avg=1" >Show Average</a></li>
-           
-                    </ul>                
-				</div>
-			</div>  
+        <h1>Horses Data - Distance <?php echo $_REQUEST['rd']; ?> </h1>
                 <table id="employee_grid" class="display" width="100%" cellspacing="0">
                     <thead>
                         <tr>
@@ -138,7 +128,7 @@ $result2 = $conn->query($sql2);
                                 . "<td>" . $row["horse_weight"] . "</td>"
                                 . "<td>" . $row["sectional"] . "</td>"
                                 . "<td>" . $row["minimumtime"] . "</td>"
-                                . "<td>" .  $newhandi. "</td>"
+                                . "<td>" . $row["handicap"]. "</td>"
                                 . "</tr>";
                             }
                         } else {
@@ -222,26 +212,7 @@ $result2 = $conn->query($sql2);
         $(document).ready(function () {
             $('#employee_grid').DataTable({ 
              "pageLength": 25,     
-            initComplete: function () {
-            this.api().columns().every( function () {
-                var column = this;
-                var select = $('<select><option value=""></option></select>')
-                    .appendTo( $(column.footer()).empty() )
-                    .on( 'change', function () {
-                        var val = $.fn.dataTable.util.escapeRegex(
-                            $(this).val()
-                        );
- 
-                        column
-                            .search( val ? '^'+val+'$' : '', true, false )
-                            .draw();
-                    } );
- 
-                column.data().unique().sort().each( function ( d, j ) {
-                    select.append( '<option value="'+d+'">'+d+'</option>' )
-                } );
-            } );
-        }
+          
             });
             
               $('#employee_grid1').DataTable({
