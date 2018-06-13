@@ -40,6 +40,7 @@ $sql2 = "SELECT *  FROM results LEFT JOIN races ON races.race_id = results.race_
 
 $result2 = $conn->query($sql2);
 
+$current_file_name = basename($_SERVER['PHP_SELF']);
 
 ?>
 <!DOCTYPE html>
@@ -72,40 +73,32 @@ $result2 = $conn->query($sql2);
             while ($row = $result1->fetch_assoc()) {
           
                 ?>
-                <li><a href=rating.php?raceid=<?php echo $row['race_id'] ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $row['race_distance'] ?> <?php if ($row['race_id'] == $_REQUEST['raceid']) { ?>class="active" <?php } ?>><?php echo $row['race_number'] ?></a></li>
+                <li><a href=<?php echo $current_file_name; ?>?raceid=<?php echo $row['race_id'] ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $row['race_distance'] ?>&avg=<?php echo $avg; ?> <?php if ($row['race_id'] == $_REQUEST['raceid']) { ?>class="active" <?php } ?>><?php echo $row['race_number'] ?></a></li>
 
 
 
                 <?php
             }
+            
         }
         ?>
+                 <?php if($avg==1){ ?>
+                         <li class="pull-right">    <a href="horses.php?raceid=<?php echo $_REQUEST['raceid'] ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $_REQUEST['rd'] ?>&avg=0" class="dropdown-item active" >Show Horses</a></li>
+                        <li class="pull-right"> <a href="rating.php?raceid=<?php echo $_REQUEST['raceid'] ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $_REQUEST['rd'] ?>&avg=0" class="dropdown-item active">Show All</a></li>
+           
+               <?php 
+            }else{ ?>
+         <li class="pull-right">   <a href="horses.php?raceid=<?php echo $_REQUEST['raceid'] ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $_REQUEST['rd'] ?>&avg=0" class="dropdown-item active" >Show Horses</a>
+            </li>
+          <li class="pull-right">   <a href="rating.php?raceid=<?php echo $_REQUEST['raceid'] ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $_REQUEST['rd'] ?>&avg=1" class="dropdown-item active" >Show Average</a>
+            </li>
+                <?php } ?>   
     </ul>
     <div class="container-fluid">
         
       
         <h1>Horses Rating- Distance <?php echo $_REQUEST['rd']; ?> </h1>
-                <div class="row">
-            <div class="col-md-6  pull-right">
             
-                <a role="presentation" class="dropdown  pull-right">
-                    <a href="#" class="btn btn-success dropdown-toggle  pull-right" id="drop4" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true"> Select <span class="caret"></span> </a> 
-                    <ul class="dropdown-menu" id="menu1" aria-labelledby="drop4"> 
-                        	
-					 <?php if($avg==1){ ?>
-                        <li>   <a href="horses.php?raceid=<?php echo $_REQUEST['raceid'] ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $_REQUEST['rd'] ?>&avg=0" class="dropdown-item" >Show Horses</a></li>
-                        <li> <a href="horses.php?raceid=<?php echo $_REQUEST['raceid'] ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $_REQUEST['rd'] ?>&avg=0" >Show All</a></li>
-           
-               <?php 
-            }else{ ?>
-            <li>   <a href="horses.php?raceid=<?php echo $_REQUEST['raceid'] ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $_REQUEST['rd'] ?>&avg=0" class="dropdown-item" >Show Horses</a>
-            </li>
-            <li>   <a href="rating.php?raceid=<?php echo $_REQUEST['raceid'] ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $_REQUEST['rd'] ?>&avg=1" class="dropdown-item" >Show Average</a>
-            </li>
-                <?php } ?>   
-                    </ul>                
-				</div>
-			</div>
         
           
           

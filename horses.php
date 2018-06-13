@@ -18,8 +18,8 @@ $avg = $_REQUEST['avg'];
 //$sql = "SELECT *, MIN(time) minimumtime,AVG(time) avgtime FROM data WHERE `name` IN (";
 $sql = "SELECT * , MIN(data.time) minimumtime FROM horses LEFT JOIN data ON horses.horse_name = data.name WHERE horses.race_id =" . $raceid;
 
-$sql .= " GROUP BY name,`distance`";
-
+//$sql .= " GROUP BY name,`distance`";
+$sql .= " GROUP BY id";
 $result = $conn->query($sql);
 
 
