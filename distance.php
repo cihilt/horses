@@ -1,5 +1,7 @@
 <?php
-$distance = newvalue(2.0, 1550, 1600, 3/9, 1.53);
+$distance = newvalue(2.0, 1100, 1100, 3/9, 1.53);
+//echo $distance;
+$distance = newvalue(1.6, 1100, 1100, 3/11, 1.2);
 echo $distance;
 function newvalue($length,$distance,$orgdistance,$pos,$time){
     $modifier = 0;
@@ -25,28 +27,24 @@ $pos =  explode('/', $pos);
     
          
             
-        if($distance!=$orgdistance){
-            if($position==1){
-                
-                if($distance<$orgdistance){
-                    
-                    $newtime =   win_rounded_up($time, $length, $modifier, $remainder);
-                }else{ 
-                $newtime =      win_rounded_down($time, $length, $modifier, $remainder);
-                }
-            }else{
-                 if($distance<$orgdistance){
-               $newtime =       loses_rounded_up($time, $length, $modifier, $remainder);
-                }else{ 
-              $newtime =        loses_rounded_down($time, $length, $modifier, $remainder);
-                }
+         if ($position == 1) {
+
+            if ($distance < $orgdistance) {
+
+                $newtime = win_rounded_up($time, $length, $modifier, $remainder);
+            } else {
+                $newtime = win_rounded_down($time, $length, $modifier, $remainder);
             }
+        } else {
+            if ($distance < $orgdistance) {
+                $newtime = loses_rounded_up($time, $length, $modifier, $remainder);
+            } else if($distance>$orgdistance) {
+                $newtime = loses_rounded_down($time, $length, $modifier, $remainder);
+            }else{
+               $newtime =   $time + ($length*$modifier);
+            }
+        }
         return $newtime;
-        
-                }else{
-                    $newtime = $time;
-                    return $newtime;
-                }
             
             
 }

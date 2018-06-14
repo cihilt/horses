@@ -127,7 +127,7 @@ $result2 = $conn->query($sql2);
                                 . "<td>" . $row["weight"] . "</td>"
                                 . "<td>" . $row["horse_weight"] . "</td>"
                                 . "<td>" . $row["sectional"] . "</td>"
-                                . "<td>" . $row["minimumtime"] . "</td>"
+                                . "<td>" . $row["time"] . "</td>"
                                 . "<td>" . $row["handicap"]. "</td>"
                                 . "</tr>";
                             }

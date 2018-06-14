@@ -101,7 +101,7 @@ echo "-------------------";
     <?php
 
     function newvalue($length, $distance, $orgdistance, $pos, $time) {
-        $modifier = 0;
+       
         //Getting the postion of the horse
         $pos = explode('/', $pos);
         $position = intval($pos[0]);
@@ -119,7 +119,7 @@ echo "-------------------";
           {
           $modifier = 0.07;
           } */
-        $modifier = 0.05;
+        $modifier = MODIFIER;
         $remainder = get_remainder($distance);
 
 
@@ -136,8 +136,10 @@ echo "-------------------";
         } else {
             if ($distance < $orgdistance) {
                 $newtime = loses_rounded_up($time, $length, $modifier, $remainder);
-            } else {
+            } else if($distance>$orgdistance) {
                 $newtime = loses_rounded_down($time, $length, $modifier, $remainder);
+            }else{
+               $newtime =   $time + ($length*$modifier);
             }
         }
         return $newtime;
