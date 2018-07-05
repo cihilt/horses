@@ -2,7 +2,26 @@
 $distance = newvalue(2.0, 1100, 1100, 3/9, 1.53);
 //echo $distance;
 $distance = newvalue(1.6, 1100, 1100, 3/11, 1.2);
-echo $distance;
+
+
+        
+        function rank_avg($value, $array, $order = 0) {
+// sort  
+  if ($order) sort ($array); else rsort($array);
+// add item for counting from 1 but 0
+  array_unshift($array, $value+1); 
+// select all indexes vith the value
+  $keys = array_keys($array, $value);
+  if (count($keys) == 0) return NULL;
+// calculate the rank
+  
+  return array_sum($keys) / count($keys);
+  
+}
+$val = "1.25,1.37,1.34,1.29,1.24,1.55,1.46,1.31,1.34";
+     $val1 =   explode(",",$val);
+echo rank_avg(1.37, $val1, 1);
+
 function newvalue($length,$distance,$orgdistance,$pos,$time){
     $modifier = 0;
      //Getting the postion of the horse
