@@ -19,7 +19,7 @@ $avg = $_REQUEST['avg'];
 
 
 if($avg==1){
-    $sql = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2,AVG(rating) rat FROM horses LEFT JOIN data ON horses.horse_name = data.name LEFT JOIN rankavg ON horses.horse_name = rankavg.name WHERE horses.race_id = $raceid  GROUP BY horse_name ORDER BY rat DESC";
+    $sql = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2,AVG(rating) rat FROM horses LEFT JOIN data ON horses.horse_name = data.name LEFT JOIN rankavg ON horses.horse_name = rankavg.name WHERE horses.race_id = $raceid  GROUP BY horse_name ORDER BY avgrank DESC";
 }else{
   $sql = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2 FROM horses LEFT JOIN data ON horses.horse_name = data.name WHERE horses.race_id =" . $raceid;
 
@@ -118,6 +118,7 @@ $current_file_name = basename($_SERVER['PHP_SELF']);
                             <th>Current Weight</th>
                              <th>Rating</th>
                               <th>AVG Rank</th>
+                              <th>Profit</th>
                             <?php
                             }else{ ?>
                             <th>No</th>
@@ -138,7 +139,8 @@ $current_file_name = basename($_SERVER['PHP_SELF']);
                     <tbody>
                         <?php
                         if ($result->num_rows > 0) {
-                            // output data of each row
+                            // output data of each row\
+                            $cnt = 1;
                             while ($row = $result->fetch_assoc()) {
                              
                                 
@@ -149,6 +151,13 @@ $current_file_name = basename($_SERVER['PHP_SELF']);
                                 }
                                 // $newhandicap = newvalue($row["length"], $row["original_distance"], $row["distance"], $row["pos"], number_format($row["minimumtime"],2));
      if($avg==1){
+        $avgrank =  number_format($row['avgrank'],2);
+        $odds = str_replace("$","" , $row["horse_fixed_odds"]);
+        if($cnt<3){
+        $profit = 10*$odds-10;
+        }else{
+            $profit ="";
+        }
          echo "<tr>"
                                 . "<td>" . $row["horse_number"] . "</td>"
                                 . "<td>" . $row["horse_name"] . "</td>"
@@ -160,7 +169,10 @@ $current_file_name = basename($_SERVER['PHP_SELF']);
                                 . "<td>" . $row['horse_weight'] . "</td>"
                                         
                             . "<td>" .$rating. "</td>"
-                     . "<td>" . number_format($row['avgrank'],2) . "</td>"
+                     . "<td>" . $avgrank . "</td>"
+             
+                   . "<td>" . $profit. "</td>"
+              
                                 . "</tr>";
          
          
@@ -179,8 +191,10 @@ $current_file_name = basename($_SERVER['PHP_SELF']);
                                 . "<td>" . number_format($row['handicap'], 3) . "</td>"
                                         
                             . "<td>" .$rating. "</td>"
+                                        
                                 . "</tr>";
                             }
+                            $cnt++;
                             
      }
                         } else {
@@ -294,9 +308,8 @@ $current_file_name = basename($_SERVER['PHP_SELF']);
         $(document).ready(function () {
        $('#employee_grid').DataTable({ 
              "pageLength": 25,     
-            
+              "order": [[ 7, "desc" ]]
             });
-            
           
 
             
