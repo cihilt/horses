@@ -19,7 +19,7 @@ $avg = $_REQUEST['avg'];
 
 
 if($avg==1){
-    $sql = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2,AVG(rating) rat FROM horses LEFT JOIN data ON horses.horse_name = data.name LEFT JOIN rankavg ON horses.horse_name = rankavg.name WHERE horses.race_id = $raceid  GROUP BY horse_name ORDER BY avgrank DESC";
+    $sql = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2,AVG(rating) rat FROM horses LEFT JOIN data ON horses.horse_name = data.name LEFT JOIN rankavg ON horses.horse_name = rankavg.name LEFT JOIN results ON results.horse = horses.horse_name WHERE horses.race_id = $raceid  GROUP BY horse_name ORDER BY avgrank DESC";
 }else{
   $sql = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2 FROM horses LEFT JOIN data ON horses.horse_name = data.name WHERE horses.race_id =" . $raceid;
 
@@ -142,7 +142,7 @@ $current_file_name = basename($_SERVER['PHP_SELF']);
                             // output data of each row\
                             $cnt = 1;
                             while ($row = $result->fetch_assoc()) {
-                             
+                              
                                 
                                 if($avg==1){
                                    $rating = number_format($row["rat"],0);
@@ -154,7 +154,12 @@ $current_file_name = basename($_SERVER['PHP_SELF']);
         $avgrank =  number_format($row['avgrank'],2);
         $odds = str_replace("$","" , $row["horse_fixed_odds"]);
         if($cnt<3){
-        $profit = 10*$odds-10;
+            if($row['position']<2){
+            $profit = 10*$odds-10;
+            
+            }else{
+               $profit = -10; 
+            }
         }else{
             $profit ="";
         }
