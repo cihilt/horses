@@ -9,7 +9,7 @@ if ($conn->connect_error) {
 
 
 //$sql = "SELECT *, MIN(time) minimumtime,AVG(time) avgtime FROM data WHERE `name` IN (";
-$sql = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2 FROM horses LEFT JOIN data ON horses.horse_name = data.name GROUP BY id";
+$sql = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2 FROM horses LEFT JOIN data ON horses.horse_name = data.name  GROUP BY id";
 
 
 $result = $conn->query($sql);
@@ -69,6 +69,37 @@ if ($result2->num_rows > 0) {
 
         $result4 = $conn->query($updaterankavg);
     }
+}
+
+
+$sql3 = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2 FROM horses 
+LEFT JOIN data ON horses.horse_name = data.name 
+LEFT JOIN rankavg ON horses.horse_name = rankavg.name GROUP BY id";
+$result3 = $conn->query($sql3);
+
+
+if ($result3->num_rows > 0) {
+    // output data of each row
+    while ($row = $result3->fetch_assoc()) {
+
+        $rating = 0;
+        if (strlen($row["horse_fixed_odds"]) > 0) {
+            $rating = rating_system($row['avgrank'], $row["sectional"], $row["weight"], $row["horse_weight"]);
+            $rating = number_format($rating, 0);
+        } else {
+            $rating = 0;
+        }
+        $id = $row['id'];
+        if($id>0){
+        // $newhandicap = newvalue($row["length"], $row["original_distance"], $row["distance"], $row["pos"], number_format($row["minimumtime"],2));
+        $updatehptime1 = "UPDATE `data` SET `rating`=$rating WHERE id = $id";
+        echo $updatehptime1 . "<br>";
+        echo "-------------------";
+        $result2 = $conn->query($updatehptime);
+        }
+    }
+} else {
+    echo "0 results";
 }
 
 function newvalue($length, $distance, $orgdistance, $pos, $time) {
@@ -158,7 +189,8 @@ function rating_system($handicap, $section, $oldweight, $newweight) {
     }
 
     $weight = weight_points($oldweight, $newweight);
-    $handicappoints = 1 / $handicap;
+    $handicappoints = $handicap;
+   // $handicappoints = $rankavg;
     if ($sectiontime == 0) {
         $sectionpoints = 0;
     } else {
