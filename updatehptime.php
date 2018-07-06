@@ -49,6 +49,7 @@ $result2 = $conn->query($sql2);
 if ($result2->num_rows > 0) {
     // output data of each row
     while ($row = $result2->fetch_assoc()) {
+       
         $sql2 = "SELECT *  FROM results LEFT JOIN races ON races.race_id = results.race_id WHERE results.race_id = " . $row['race_id'];
 
         $result3 = $conn->query($sql2);
@@ -56,7 +57,7 @@ if ($result2->num_rows > 0) {
 
         $handicap = $row['minihandi'];
         $distance = $row['distance'];
-        $horsename = mysql_real_escape_string($row['horse_name']);
+        $horsename = str_replace("'","\'", $row['horse_name']);
         $arr = explode(",", $row["handis"]);
         $cnt = count($arr);
         $per = ($cnt / $countofhorses) * 100;
@@ -66,7 +67,7 @@ if ($result2->num_rows > 0) {
             echo $updaterankavg . "<br>";
             echo "-------------------";
         }
-
+        
         $result4 = $conn->query($updaterankavg);
     }
 }

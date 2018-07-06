@@ -97,7 +97,7 @@ $result2 = $conn->query($sql2);
                             <th>Sectional</th>
                             <th>Min Time</th>
                             <th>Handicap</th>
-
+<th>Rank</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -105,7 +105,7 @@ $result2 = $conn->query($sql2);
                         if ($result->num_rows > 0) {
                             // output data of each row
                             while ($row = $result->fetch_assoc()) {
-                           
+                         
                                
                                 $distance = round($row["original_distance"] / 100);
                                 $distance = $distance * 100;
@@ -129,6 +129,7 @@ $result2 = $conn->query($sql2);
                                 . "<td>" . $row["sectional"] . "</td>"
                                 . "<td>" . $row["time"] . "</td>"
                                 . "<td>" . $row["handicap"]. "</td>"
+                                         . "<td>" . $row["rank"]. "</td>"
                                 . "</tr>";
                             }
                         } else {

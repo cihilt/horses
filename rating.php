@@ -19,7 +19,7 @@ $avg = $_REQUEST['avg'];
 
 
 if($avg==1){
-    $sql = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2,AVG(rating) rat FROM horses LEFT JOIN data ON horses.horse_name = data.name WHERE horses.race_id = $raceid  GROUP BY horse_name ORDER BY rat DESC";
+    $sql = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2,AVG(rating) rat FROM horses LEFT JOIN data ON horses.horse_name = data.name LEFT JOIN rankavg ON horses.horse_name = rankavg.name WHERE horses.race_id = $raceid  GROUP BY horse_name ORDER BY rat DESC";
 }else{
   $sql = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2 FROM horses LEFT JOIN data ON horses.horse_name = data.name WHERE horses.race_id =" . $raceid;
 
@@ -117,6 +117,7 @@ $current_file_name = basename($_SERVER['PHP_SELF']);
                             <th>Weight</th>
                             <th>Current Weight</th>
                              <th>Rating</th>
+                              <th>AVG Rank</th>
                             <?php
                             }else{ ?>
                             <th>No</th>
@@ -139,7 +140,7 @@ $current_file_name = basename($_SERVER['PHP_SELF']);
                         if ($result->num_rows > 0) {
                             // output data of each row
                             while ($row = $result->fetch_assoc()) {
-                               
+                             
                                 
                                 if($avg==1){
                                    $rating = number_format($row["rat"],0);
@@ -159,6 +160,7 @@ $current_file_name = basename($_SERVER['PHP_SELF']);
                                 . "<td>" . $row['horse_weight'] . "</td>"
                                         
                             . "<td>" .$rating. "</td>"
+                     . "<td>" . number_format($row['avgrank'],2) . "</td>"
                                 . "</tr>";
          
          
