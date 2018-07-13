@@ -103,8 +103,12 @@ if ($result3->num_rows > 0) {
 }
 */
 //Update rating using the avg sectional formula
-$sql5 = "SELECT *  FROM `maxsectional` LEFT JOIN sec_avg_data ON sec_avg_data.race_id = maxsectional.race_id AND sec_avg_data.distance = maxsectional.distance";
+//$sql5 = "SELECT *  FROM `maxsectional` LEFT JOIN sec_avg_data ON sec_avg_data.race_id = maxsectional.race_id AND sec_avg_data.distance = maxsectional.distance";
 
+
+$sql5 = "SELECT *  FROM `maxsectional` 
+LEFT JOIN sec_avg_data ON sec_avg_data.race_id = maxsectional.race_id AND sec_avg_data.distance = maxsectional.distance
+LEFT JOIN data ON data.distance = maxsectional.distance AND data.name = maxsectional.horse_name";
 $result5 = $conn->query($sql5);
 if ($result5->num_rows > 0) {
     // output data of each row
@@ -119,12 +123,13 @@ if ($result5->num_rows > 0) {
         $distance = $row['distance'];
         $horsename = str_replace("'","\'", $row['horse_name']);
         $arr = explode(",", $row["sectionals"]);
+        
         $cnt = count($arr);
         $per = ($cnt / $countofhorses) * 100;
         if ($per > 40) {
             $sectional_avg = sectional_avg($row["maxsectional"], $arr, 0);
             //echo $sectional_avg."<br/>";
-             $rating = rating_system_new($row['maxsectional'], $sectional_avg, $row["weight"], $row["horse_weight"]);
+             $rating = rating_system_new($row['rank'], $sectional_avg, $row["weight"], $row["horse_weight"]);
          // echo $rating."<br/>";
             $updaterankavg1 = "UPDATE `data` SET `rating` = '$rating' WHERE `distance`= '$distance' AND `name`= '$horsename'";
               $result4 = $conn->query($updaterankavg1);
@@ -315,14 +320,15 @@ function sectional_avg($value, $array, $order = 0) {
 }
 
 
-function rating_system_new($handicap, $sectionpoints, $oldweight, $newweight) {
+function rating_system_new($rankavg, $avgsectional, $oldweight, $newweight) {
  
+    $rating = $rankavg+$avgsectional;
 
-    $weight = weight_points($oldweight, $newweight);
+    /*$weight = weight_points($oldweight, $newweight);
     $handicappoints = $handicap;
    
-    $rating = $handicappoints + $sectionpoints + ($weight / 100);
-    
+    $rating = $handicappoints + $sectionpoints;
+    */
     return $rating;
 }
 
