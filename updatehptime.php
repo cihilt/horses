@@ -325,4 +325,6 @@ function rating_system_new($handicap, $sectionpoints, $oldweight, $newweight) {
     
     return $rating;
 }
+
+
 ?>
