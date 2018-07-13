@@ -71,8 +71,7 @@ if ($result2->num_rows > 0) {
         $result4 = $conn->query($updaterankavg);
     }
 }
-
-
+/*
 $sql3 = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2 FROM horses 
 LEFT JOIN data ON horses.horse_name = data.name 
 LEFT JOIN rankavg ON horses.horse_name = rankavg.name GROUP BY id";
@@ -101,6 +100,42 @@ if ($result3->num_rows > 0) {
     }
 } else {
     echo "0 results";
+}
+*/
+//Update rating using the avg sectional formula
+$sql5 = "SELECT *  FROM `maxsectional` LEFT JOIN sec_avg_data ON sec_avg_data.race_id = maxsectional.race_id AND sec_avg_data.distance = maxsectional.distance";
+
+$result5 = $conn->query($sql5);
+if ($result5->num_rows > 0) {
+    // output data of each row
+    while ($row = $result5->fetch_assoc()) {
+       
+        $sql2 = "SELECT *  FROM results LEFT JOIN races ON races.race_id = results.race_id WHERE results.race_id = " . $row['race_id'];
+
+        $result3 = $conn->query($sql2);
+        $countofhorses = $result3->num_rows;
+
+        $handicap = $row['maxsectional'];
+        $distance = $row['distance'];
+        $horsename = str_replace("'","\'", $row['horse_name']);
+        $arr = explode(",", $row["sectionals"]);
+        $cnt = count($arr);
+        $per = ($cnt / $countofhorses) * 100;
+        if ($per > 40) {
+            $sectional_avg = sectional_avg($row["maxsectional"], $arr, 0);
+            //echo $sectional_avg."<br/>";
+             $rating = rating_system_new($row['maxsectional'], $sectional_avg, $row["weight"], $row["horse_weight"]);
+         // echo $rating."<br/>";
+            $updaterankavg1 = "UPDATE `data` SET `rating` = '$rating' WHERE `distance`= '$distance' AND `name`= '$horsename'";
+              $result4 = $conn->query($updaterankavg1);
+            
+            echo $updaterankavg1 . "<br>";
+            
+            echo "-------------------";
+        }
+        
+    
+    }
 }
 
 function newvalue($length, $distance, $orgdistance, $pos, $time) {
@@ -132,7 +167,7 @@ function newvalue($length, $distance, $orgdistance, $pos, $time) {
         }
     }
     return $newtime;
-}
+}  
 
 function get_remainder($distance) {
 
@@ -192,6 +227,7 @@ function rating_system($handicap, $section, $oldweight, $newweight) {
     $weight = weight_points($oldweight, $newweight);
     $handicappoints = $handicap;
    // $handicappoints = $rankavg;
+    //$sectionpoints = sectional avgvalue from  forumla;
     if ($sectiontime == 0) {
         $sectionpoints = 0;
     } else {
@@ -255,5 +291,38 @@ function rank_avg($value, $array, $order = 0) {
 
     $res = array_sum($keys) / count($keys);
     return $res / 2;
+}
+
+
+function sectional_avg($value, $array, $order = 0) {
+    
+// sort  
+    if ($order)
+        sort($array);
+    else
+        rsort($array);
+// add item for counting from 1 but 0
+    array_unshift($array, $value + 1);
+// select all indexes vith the value
+    $keys = array_keys($array, $value);
+    if (count($keys) == 0)
+        return NULL;
+// calculate the rank
+
+    $res = array_sum($keys) / count($keys);
+   
+    return $res/2;
+}
+
+
+function rating_system_new($handicap, $sectionpoints, $oldweight, $newweight) {
+ 
+
+    $weight = weight_points($oldweight, $newweight);
+    $handicappoints = $handicap;
+   
+    $rating = $handicappoints + $sectionpoints + ($weight / 100);
+    
+    return $rating;
 }
 ?>
