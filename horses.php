@@ -54,7 +54,7 @@ $result2 = $conn->query($sql2);
         <script type="text/javascript" src="https://cdn.datatables.net/1.10.9/js/jquery.dataTables.min.js"></script>
 
 
-    <ul> <li><a href="meeting.php">Home</a></li>
+    <ul> <li><a href="/">Home</a></li>
         <li><a href="meeting.php">Meetings</a></li>
         <li><a href="result.php" >Results</a></li>
         <li><a class="active"><?php echo $_SESSION['mname']; ?></a></li>

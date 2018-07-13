@@ -24,7 +24,8 @@ $result = $conn->query($sql);
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <title>Horses Data</title>
         
-        <script src=https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js></script>
+       <script src=https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js></script>
+
         <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.9/css/jquery.dataTables.min.css"/>
 
         <script type="text/javascript" src="https://cdn.datatables.net/1.10.9/js/jquery.dataTables.min.js"></script>
@@ -42,7 +43,7 @@ $result = $conn->query($sql);
 <!-- Latest compiled and minified JavaScript -->
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 <ul>
-  <li><a href="meeting.php">Home</a></li>
+  <li><a href="/">Home</a></li>
    <li><a href="result.php" >Results</a></li>
   <li><a href="meeting.php" class="active">Meetings</a></li>
   

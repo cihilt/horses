@@ -8,6 +8,8 @@ session_start();
 if (!isset($_SESSION['mname'])) {
     $_SESSION['mname'] = $_REQUEST['mname'];
 }
+$s1 = "";
+$s2 = "";
 $raceid = $_REQUEST['raceid'];
 $avg = 0;
 if(isset($_REQUEST['avg'])){
@@ -20,6 +22,29 @@ $avg = $_REQUEST['avg'];
 
 if($avg==1){
     $sql = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2,AVG(rating) rat FROM horses LEFT JOIN data ON horses.horse_name = data.name LEFT JOIN rankavg ON horses.horse_name = rankavg.name LEFT JOIN results ON results.horse = horses.horse_name WHERE horses.race_id = $raceid  GROUP BY horse_name ORDER BY avgrank DESC";
+    $geting = $conn->query($sql);
+    $ratin = array();
+    while($gnow = $geting->fetch_object()) {
+        $ratin[] = number_format($gnow->rat,2);
+    }
+    $ismaxrat = max($ratin);
+    
+    $max_1 = $max_2 = -1;
+    $maxused = 0;
+
+    for($i=0; $i<count($ratin); $i++)
+    {
+        if($ratin[$i] > $max_1)
+        {
+          $max_2 = $max_1;
+          $max_1 = $ratin[$i];
+        }
+        else if($ratin[$i] > $max_2)
+        {
+          $max_2 = $ratin[$i];
+        }
+    }
+    
 }else{
   $sql = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2 FROM horses LEFT JOIN data ON horses.horse_name = data.name WHERE horses.race_id =" . $raceid;
 
@@ -96,7 +121,6 @@ $current_file_name = basename($_SERVER['PHP_SELF']);
     </ul>
     <div class="container-fluid">
         
-      
         <h1>Horses Rating- Distance <?php echo $_REQUEST['rd']; ?> </h1>
             
         
@@ -117,6 +141,7 @@ $current_file_name = basename($_SERVER['PHP_SELF']);
                             <th>Weight</th>
                             <th>Current Weight</th>
                              <th>Rating</th>
+                             <th>Profit & Loss</th>
                               <th>AVG Rank</th>
                               <th>Profit</th>
                             <?php
@@ -141,11 +166,12 @@ $current_file_name = basename($_SERVER['PHP_SELF']);
                         if ($result->num_rows > 0) {
                             // output data of each row\
                             $cnt = 1;
+                            $ratenow = array();
                             while ($row = $result->fetch_assoc()) {
-                              
                                 
                                 if($avg==1){
-                                   $rating = number_format($row["rat"],0);
+                                   $rating = number_format($row["rat"],2);
+                                   $ratenow[] = $rating;
                                 }else{
                                     $rating = $row["rating"];
                                 }
@@ -155,14 +181,80 @@ $current_file_name = basename($_SERVER['PHP_SELF']);
         $odds = str_replace("$","" , $row["horse_fixed_odds"]);
         if($cnt<3){
             if($row['position']<2){
-            $profit = 10*$odds-10;
-            
+                $profit = 10*$odds-10;
             }else{
                $profit = -10; 
             }
-        }else{
+        } else {
             $profit ="";
         }
+        
+        
+
+
+        /*
+        $profitloss = "";
+        if($rating && $row['position'] > 2) {
+            if($rating > 0) {
+                if($rating == $max_1) {
+                     $profitloss = 10*0-10;
+                     $max_1 = -1;
+                }
+                else if($rating == $max_2) {
+                    $profitloss = 10*0-10;
+                    $max_2 = -1;
+                }
+                else
+                {
+                    $profitloss = "";
+                }
+            }
+        }
+        else {
+            if($rating > 0) {
+                if($rating == $max_1) {
+                    $profitloss = 10*$odds-10;
+                    $max_1 = -1;
+                }
+                else if($rating == $max_2) {
+                    $profitloss = 10*$odds-10;
+                    $max_2 = -1;
+                }
+                else {
+                    $profitloss = "";
+                }
+            }
+        }*/
+        
+        $profitloss = "";
+        if($rating && $row['position'] > 2) {
+            if($rating > 0) {
+                if($rating == $max_1 || $rating == $max_2)
+                {
+                    $profitloss = 10*0-10;
+                }
+                else
+                {
+                    $profitloss = "";
+                }
+            }
+        }
+        else {
+            if($rating > 0) {
+                if($rating == $max_1 || $rating == $max_2) {
+                    if($row['position'] != 1) {
+                        $profitloss = 10*0-10;
+                    }
+                    else {
+                        $profitloss = 10*$odds-10;
+                    }
+                }
+                else {
+                    $profitloss = "";
+                }
+            }
+        }
+        
          echo "<tr>"
                                 . "<td>" . $row["horse_number"] . "</td>"
                                 . "<td>" . $row["horse_name"] . "</td>"
@@ -174,8 +266,8 @@ $current_file_name = basename($_SERVER['PHP_SELF']);
                                 . "<td>" . $row['horse_weight'] . "</td>"
                                         
                             . "<td>" .$rating. "</td>"
+                            . "<td>" . $profitloss . "</td>"
                      . "<td>" . $avgrank . "</td>"
-             
                    . "<td>" . $profit. "</td>"
               
                                 . "</tr>";
