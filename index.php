@@ -46,7 +46,7 @@ if ($result1->num_rows > 0) {
         }
     }
 }
-echo "<br />Avg Rank Total Profit: " . $totalprofit;
+echo "<br />AVG Rank Without Sectional Total Profit: " . $totalprofit;
 echo "<br/>";
 echo "Avg Rank Total Loss: " . $totalloss;
 echo "<br/>";
@@ -192,7 +192,7 @@ if ($result1->num_rows > 0) {
     
 }
 
-echo "Rating Total Profit: " . $ratingprofit;
+echo "AVG Rank with Sectional Total Profit: " . $ratingprofit;
 echo "<br/>";
 echo "Rating Total Loss: " . $ratingloss;
 echo "<br/>";
