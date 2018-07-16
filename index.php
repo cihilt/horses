@@ -28,7 +28,7 @@ if ($result1->num_rows > 0) {
         $result = $conn->query($sql);
         if ($result->num_rows > 0) {
             while ($row = $result->fetch_assoc()) {
-                $avgrank = number_format($row['rank'], 2);
+                $avgrank = number_format($row['avgrank'], 2);
                 $odds = str_replace("$", "", $row["horse_fixed_odds"]);
                 // echo $row['horse_name'] . " " . $raceid . " ";
                 if ($row['position'] < 2) {

@@ -177,7 +177,7 @@ $current_file_name = basename($_SERVER['PHP_SELF']);
                                 }
                                 // $newhandicap = newvalue($row["length"], $row["original_distance"], $row["distance"], $row["pos"], number_format($row["minimumtime"],2));
      if($avg==1){
-        $avgrank =  number_format($row['rank'],2);
+        $avgrank =  number_format($row['avgrank'],2);
         $odds = str_replace("$","" , $row["horse_fixed_odds"]);
         if($cnt<3){
             if($row['position']<2){
