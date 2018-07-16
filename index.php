@@ -17,18 +17,18 @@ if ($result1->num_rows > 0) {
     while ($row = $result1->fetch_assoc()) {
         $raceid = $row['race_id'];
 
-        $sql = "select *, MIN(data.time) minimumtime,MIN(data.time2) minimumtime2,AVG(rating) rat 
+        $sql = "select *, MIN(data.time) minimumtime,MIN(data.time2) minimumtime2,rating rat 
                 from `horses` a
                 LEFT JOIN data ON a.horse_name = data.name 
                 LEFT JOIN rankavg ON a.horse_name = rankavg.name 
                 LEFT JOIN results ON results.horse = a.horse_name
                 WHERE a.race_id = $raceid
-                GROUP BY horse_name ORDER BY avgrank DESC
+                GROUP BY horse_name ORDER BY rank DESC
                 LIMIT 0,2";
         $result = $conn->query($sql);
         if ($result->num_rows > 0) {
             while ($row = $result->fetch_assoc()) {
-                $avgrank = number_format($row['avgrank'], 2);
+                $avgrank = number_format($row['rank'], 2);
                 $odds = str_replace("$", "", $row["horse_fixed_odds"]);
                 // echo $row['horse_name'] . " " . $raceid . " ";
                 if ($row['position'] < 2) {
@@ -64,11 +64,20 @@ if ($result1->num_rows > 0) {
     while ($row = $result1->fetch_assoc()) {
         $raceid = $row['race_id'];
 
-        $sql = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2,AVG(rating) rat FROM horses LEFT JOIN data ON horses.horse_name = data.name LEFT JOIN rankavg ON horses.horse_name = rankavg.name LEFT JOIN results ON results.horse = horses.horse_name WHERE horses.race_id = $raceid  GROUP BY horse_name ORDER BY avgrank DESC";
+        //$sql = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2,rating rat FROM horses LEFT JOIN data ON horses.horse_name = data.name LEFT JOIN rankavg ON horses.horse_name = rankavg.name LEFT JOIN results ON results.horse = horses.horse_name WHERE horses.race_id = $raceid  GROUP BY horse_name ORDER BY rank DESC ";
+           $sql = "select *, MIN(data.time) minimumtime,MIN(data.time2) minimumtime2,rating rat 
+                from `horses` a
+                LEFT JOIN data ON a.horse_name = data.name 
+                LEFT JOIN rankavg ON a.horse_name = rankavg.name 
+                LEFT JOIN results ON results.horse = a.horse_name
+                WHERE a.race_id = $raceid
+                GROUP BY horse_name ORDER BY rating DESC
+                LIMIT 0,2";
+        
         $geting = $conn->query($sql);
         $ratin = array();
         while($gnow = $geting->fetch_assoc()) {
-            $ratin[] = number_format($gnow['rat'],0);
+            $ratin[] = number_format($gnow['rating'],0);
         }
         
         $max_1 = $max_2 = -1;
@@ -88,7 +97,7 @@ if ($result1->num_rows > 0) {
         $result = $conn->query($sql);
         if ($result->num_rows > 0) {
             while ($row = $result->fetch_assoc()) {
-                $rating = number_format($row["rat"],0);
+                $rating = number_format($row["rating"],0);
                 $odds = str_replace("$","" , $row["horse_fixed_odds"]);
                 
                 $profitloss = "";
