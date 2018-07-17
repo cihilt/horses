@@ -20,6 +20,7 @@ $avg = $_REQUEST['avg'];
 //$sql = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2 FROM horses LEFT JOIN data ON horses.horse_name = data.name WHERE sectional != '-' AND horse_weight != '' AND horses.race_id =" . $raceid;
 
 
+
 if($avg==1){
     $sql = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2,AVG(rating) AS rat FROM horses LEFT JOIN data ON horses.horse_name = data.name LEFT JOIN rankavg ON horses.horse_name = rankavg.name LEFT JOIN results ON results.horse = horses.horse_name WHERE horses.race_id = $raceid  GROUP BY horse_name ORDER BY rank DESC";
     $geting = $conn->query($sql);
