@@ -158,6 +158,7 @@ $current_file_name = basename($_SERVER['PHP_SELF']);
                             <th>Minimum Time</th>
                             <th>Handicap</th>
                              <th>Rating</th>
+                              <th>Rank</th>
                             <?php } ?>
 
                         </tr>
@@ -289,7 +290,7 @@ $current_file_name = basename($_SERVER['PHP_SELF']);
                                 . "<td>" . number_format($row['handicap'], 3) . "</td>"
                                         
                             . "<td>" .$rating. "</td>"
-                                        
+                                       . "<td>" .$row['rank']. "</td>"   
                                 . "</tr>";
                             }
                             $cnt++;

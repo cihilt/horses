@@ -6,8 +6,6 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-
-
 //$sql = "SELECT *, MIN(time) minimumtime,AVG(time) avgtime FROM data WHERE `name` IN (";
 $sql = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2 FROM horses LEFT JOIN data ON horses.horse_name = data.name  GROUP BY id";
 
@@ -42,7 +40,7 @@ if ($result->num_rows > 0) {
     echo "0 results";
 }
 //Query to update the rank avg
-$sql7 = "Update `data` SET rank = NULL"; //Resetting Rank 
+$sql7 = "Update `data` SET rank = NULL"; //Resetting Rank
 $result7 = $conn->query($sql7);
 $sql2 = "SELECT *  FROM `minihand` LEFT JOIN rank_avg_data ON rank_avg_data.race_id = minihand.race_id AND rank_avg_data.distance = minihand.distance";
 
@@ -50,7 +48,7 @@ $result2 = $conn->query($sql2);
 if ($result2->num_rows > 0) {
     // output data of each row
     while ($row = $result2->fetch_assoc()) {
-       
+
         $sql2 = "SELECT *  FROM results LEFT JOIN races ON races.race_id = results.race_id WHERE results.race_id = " . $row['race_id'];
 
         $result3 = $conn->query($sql2);
@@ -58,7 +56,7 @@ if ($result2->num_rows > 0) {
 
         $handicap = $row['minihandi'];
         $distance = $row['distance'];
-        $horsename = str_replace("'","\'", $row['horse_name']);
+        $horsename = str_replace("'", "\'", $row['horse_name']);
         $arr = explode(",", $row["handis"]);
         $cnt = count($arr);
         $per = ($cnt / $countofhorses) * 100;
@@ -68,41 +66,41 @@ if ($result2->num_rows > 0) {
             echo $updaterankavg . "<br>";
             echo "-------------------";
         }
-        
+
         $result4 = $conn->query($updaterankavg);
     }
 }
 /*
-$sql3 = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2 FROM horses 
-LEFT JOIN data ON horses.horse_name = data.name 
-LEFT JOIN rankavg ON horses.horse_name = rankavg.name GROUP BY id";
-$result3 = $conn->query($sql3);
+  $sql3 = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2 FROM horses
+  LEFT JOIN data ON horses.horse_name = data.name
+  LEFT JOIN rankavg ON horses.horse_name = rankavg.name GROUP BY id";
+  $result3 = $conn->query($sql3);
 
 
-if ($result3->num_rows > 0) {
-    // output data of each row
-    while ($row = $result3->fetch_assoc()) {
+  if ($result3->num_rows > 0) {
+  // output data of each row
+  while ($row = $result3->fetch_assoc()) {
 
-        $rating = 0;
-        if (strlen($row["horse_fixed_odds"]) > 0) {
-            $rating = rating_system($row['avgrank'], $row["sectional"], $row["weight"], $row["horse_weight"]);
-            $rating = number_format($rating, 0);
-        } else {
-            $rating = 0;
-        }
-        $id = $row['id'];
-        if($id>0){
-        // $newhandicap = newvalue($row["length"], $row["original_distance"], $row["distance"], $row["pos"], number_format($row["minimumtime"],2));
-        $updatehptime1 = "UPDATE `data` SET `rating`=$rating WHERE id = $id";
-        echo $updatehptime1 . "<br>";
-        echo "-------------------";
-        $result2 = $conn->query($updatehptime);
-        }
-    }
-} else {
-    echo "0 results";
-}
-*/
+  $rating = 0;
+  if (strlen($row["horse_fixed_odds"]) > 0) {
+  $rating = rating_system($row['avgrank'], $row["sectional"], $row["weight"], $row["horse_weight"]);
+  $rating = number_format($rating, 0);
+  } else {
+  $rating = 0;
+  }
+  $id = $row['id'];
+  if($id>0){
+  // $newhandicap = newvalue($row["length"], $row["original_distance"], $row["distance"], $row["pos"], number_format($row["minimumtime"],2));
+  $updatehptime1 = "UPDATE `data` SET `rating`=$rating WHERE id = $id";
+  echo $updatehptime1 . "<br>";
+  echo "-------------------";
+  $result2 = $conn->query($updatehptime);
+  }
+  }
+  } else {
+  echo "0 results";
+  }
+ */
 //Update rating using the avg sectional formula
 //$sql5 = "SELECT *  FROM `maxsectional` LEFT JOIN sec_avg_data ON sec_avg_data.race_id = maxsectional.race_id AND sec_avg_data.distance = maxsectional.distance";
 
@@ -111,41 +109,70 @@ $sql6 = "Update `data` SET rating = NULL"; //Resetting Rating
 $result6 = $conn->query($sql6);
 
 
-$sql5 = "SELECT *  FROM `maxsectional` LEFT JOIN sec_avg_data ON sec_avg_data.race_id = maxsectional.race_id AND sec_avg_data.distance = maxsectional.distance";
+//$sql5 = "SELECT *  FROM `maxsectional` LEFT JOIN sec_avg_data ON sec_avg_data.race_id = maxsectional.race_id AND sec_avg_data.distance = maxsectional.distance";
+
+$sql5 = "SELECT *  FROM `maxsectional` LEFT JOIN sec_avg_data ON sec_avg_data.race_id = maxsectional.race_id AND sec_avg_data.distance = maxsectional.distance
+LEFT JOIN rank_avg_data ON rank_avg_data.race_id = maxsectional.race_id AND rank_avg_data.distance = maxsectional.distance";
 $result5 = $conn->query($sql5);
 if ($result5->num_rows > 0) {
     // output data of each row
     while ($row = $result5->fetch_assoc()) {
-       
+
+
+        $distance = $row['distance'];
+
         $sql2 = "SELECT *  FROM results LEFT JOIN races ON races.race_id = results.race_id WHERE results.race_id = " . $row['race_id'];
 
         $result3 = $conn->query($sql2);
         $countofhorses = $result3->num_rows;
 
         $handicap = $row['maxsectional'];
-        $distance = $row['distance'];
-        $horsename = str_replace("'","\'", $row['horse_name']);
+
+
+
+        $handis = $row['handis'];
+        $arr2 = explode(",", $handis);
+        $cnt1 = count($arr2); //Count of Handis
+        $per1 = ($cnt1 / $countofhorses) * 100;
+
+
+        $horsename = str_replace("'", "\'", $row['horse_name']);
+
+        //Getting % of sectionals
         $arr = explode(",", $row["sectionals"]);
-        
+
         $cnt = count($arr);
         $per = ($cnt / $countofhorses) * 100;
+        //Checking rank value 
+        if ($per1 > 40) {
+            $rank = $row['rank'];
+        } else {
+            $rank = 0;
+        }
+        //Checking sectional value 
         if ($per > 40) {
             $sectional_avg = sectional_avg($row["maxsectional"], $arr, 0);
-            //echo $sectional_avg."<br/>";
-             $rating = rating_system_new($row['rank'], $sectional_avg, $row["weight"], $row["horse_weight"]);
-         // echo $rating."<br/>";
-            $updaterankavg1 = "UPDATE `data` SET `rating` = '$rating' WHERE `distance`= '$distance' AND `name`= '$horsename'";
-              $result4 = $conn->query($updaterankavg1);
-            
-            echo $updaterankavg1 . "<br>";
-            
-            echo "-------------------";
+        } else {
+            $sectional_avg = 0;
         }
-        
-    
+
+        echo $sectional_avg;
+        echo "<br/>";
+        echo $rank;
+        echo "<br/>";
+
+
+        //echo $sectional_avg."<br/>";
+        $rating = rating_system_new($rank, $sectional_avg, $row["weight"], $row["horse_weight"]);
+        // echo $rating."<br/>";
+        $updaterankavg1 = "UPDATE `data` SET `rating` = '$rating' WHERE `distance`= '$distance' AND `name`= '$horsename'";
+        $result4 = $conn->query($updaterankavg1);
+
+        echo $updaterankavg1 . "<br>";
+
+        echo "-------------------";
     }
 }
- 
 
 function newvalue($length, $distance, $orgdistance, $pos, $time) {
 
@@ -176,7 +203,7 @@ function newvalue($length, $distance, $orgdistance, $pos, $time) {
         }
     }
     return $newtime;
-}  
+}
 
 function get_remainder($distance) {
 
@@ -235,7 +262,7 @@ function rating_system($handicap, $section, $oldweight, $newweight) {
 
     $weight = weight_points($oldweight, $newweight);
     $handicappoints = $handicap;
-   // $handicappoints = $rankavg;
+    // $handicappoints = $rankavg;
     //$sectionpoints = sectional avgvalue from  forumla;
     if ($sectiontime == 0) {
         $sectionpoints = 0;
@@ -302,9 +329,8 @@ function rank_avg($value, $array, $order = 0) {
     return $res / 2;
 }
 
-
 function sectional_avg($value, $array, $order = 0) {
-    
+
 // sort  
     if ($order)
         sort($array);
@@ -319,22 +345,19 @@ function sectional_avg($value, $array, $order = 0) {
 // calculate the rank
 
     $res = array_sum($keys) / count($keys);
-   
-    return $res/2;
-}
 
+    return $res / 2;
+}
 
 function rating_system_new($rankavg, $avgsectional, $oldweight, $newweight) {
-  //$rating = $rankavg;
+    //$rating = $rankavg;
     //$rating = $rankavg+$avgsectional;
-
-    $weight = weight_points($oldweight, $newweight);
+    //$weight = weight_points($oldweight, $newweight);
     //$handicappoints = $handicap;
-   
-    $rating = $rankavg + $avgsectional + $weight;
-  
+
+    $rating = $rankavg + $avgsectional;
+
     return $rating;
 }
-
 
 ?>
