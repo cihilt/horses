@@ -5,7 +5,8 @@ include('constant.php');
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
-
+$sqlseq = "UPDATE `data` SET `sectional` = 0 WHERE `sectional`='-'"; //Resetting Rating 
+$resultseq = $conn->query($sqlseq);
 //$sql = "SELECT *, MIN(time) minimumtime,AVG(time) avgtime FROM data WHERE `name` IN (";
 $sql = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2 FROM horses LEFT JOIN data ON horses.horse_name = data.name  GROUP BY id";
 
@@ -156,10 +157,7 @@ if ($result5->num_rows > 0) {
             $sectional_avg = 0;
         }
 
-        echo $sectional_avg;
-        echo "<br/>";
-        echo $rank;
-        echo "<br/>";
+      
 
 
         //echo $sectional_avg."<br/>";
