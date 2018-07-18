@@ -42,7 +42,7 @@ if ($result->num_rows > 0) {
     echo "0 results";
 }
 //Query to update the rank avg
-$sql7 = "Update SET rank = NULL"; //Resetting Rank 
+$sql7 = "Update `data` SET rank = NULL"; //Resetting Rank 
 $result7 = $conn->query($sql7);
 $sql2 = "SELECT *  FROM `minihand` LEFT JOIN rank_avg_data ON rank_avg_data.race_id = minihand.race_id AND rank_avg_data.distance = minihand.distance";
 
@@ -107,7 +107,7 @@ if ($result3->num_rows > 0) {
 //$sql5 = "SELECT *  FROM `maxsectional` LEFT JOIN sec_avg_data ON sec_avg_data.race_id = maxsectional.race_id AND sec_avg_data.distance = maxsectional.distance";
 
 
-$sql6 = "Update SET rating = NULL"; //Resetting Rating 
+$sql6 = "Update `data` SET rating = NULL"; //Resetting Rating 
 $result6 = $conn->query($sql6);
 
 
