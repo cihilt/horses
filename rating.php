@@ -22,7 +22,7 @@ $avg = $_REQUEST['avg'];
 
 
 if($avg==1){
-    $sql = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2,AVG(rating) AS rat FROM horses LEFT JOIN data ON horses.horse_name = data.name LEFT JOIN rankavg ON horses.horse_name = rankavg.name LEFT JOIN results ON results.horse = horses.horse_name WHERE horses.race_id = $raceid  GROUP BY horse_name ORDER BY rank DESC";
+    $sql = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2,AVG(rating) AS rat FROM horses LEFT JOIN data ON horses.horse_name = data.name LEFT JOIN rankavg ON horses.horse_name = rankavg.name LEFT JOIN results ON results.horse = horses.horse_name WHERE horses.race_id = $raceid  GROUP BY horse_name ORDER BY avgrank DESC";
     $geting = $conn->query($sql);
     $ratin = array();
     while($gnow = $geting->fetch_object()) {

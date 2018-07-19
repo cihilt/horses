@@ -23,7 +23,7 @@ if ($result1->num_rows > 0) {
                 LEFT JOIN rankavg ON a.horse_name = rankavg.name 
                 LEFT JOIN results ON results.horse = a.horse_name
                 WHERE a.race_id = $raceid
-                GROUP BY horse_name ORDER BY rank DESC
+                GROUP BY horse_name ORDER BY avgrank DESC
                 LIMIT 0,2";
         $result = $conn->query($sql);
         if ($result->num_rows > 0) {
