@@ -22,7 +22,7 @@ $avg = $_REQUEST['avg'];
 
 
 if($avg==1){
-    $sql = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2,AVG(rating) AS rat FROM horses LEFT JOIN data ON horses.horse_name = data.name LEFT JOIN rankavg ON horses.horse_name = rankavg.name LEFT JOIN results ON results.horse = horses.horse_name WHERE horses.race_id = $raceid  GROUP BY horse_name ORDER BY avgrank DESC";
+    $sql = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2,AVG(rating) AS rat FROM horses LEFT JOIN data ON horses.horse_name = data.name LEFT JOIN rankavg ON horses.horse_name = rankavg.name LEFT JOIN results ON results.horse = horses.horse_name WHERE rating != 0 AND horses.race_id = $raceid  GROUP BY horse_name ORDER BY avgrank DESC";
     $geting = $conn->query($sql);
     $ratin = array();
     while($gnow = $geting->fetch_object()) {
@@ -170,7 +170,7 @@ $current_file_name = basename($_SERVER['PHP_SELF']);
                             $cnt = 1;
                             $ratenow = array();
                             while ($row = $result->fetch_assoc()) {
-                                
+                             
                                 if($avg==1){
                                    $rating = number_format($row["rat"],2);
                                    $ratenow[] = $rating;
@@ -182,7 +182,9 @@ $current_file_name = basename($_SERVER['PHP_SELF']);
         $avgrank =  number_format($row['avgrank'],2);
         $odds = str_replace("$","" , $row["horse_fixed_odds"]);
         if($cnt<3){
-            if($row['position']<2){
+          $pos =  explode('/', $row['pos']);
+    		$position =  intval($pos[0]);
+            if($position<2){
                 $profit = 10*$odds-10;
             }else{
                $profit = -10; 
@@ -229,7 +231,11 @@ $current_file_name = basename($_SERVER['PHP_SELF']);
         }*/
         
         $profitloss = "";
-        if($rating && $row['position'] > 2) {
+          $pos =  explode('/', $row['pos']);
+    		$position =  intval($pos[0]);
+           
+                   
+        if($rating && $position > 2) {
             if($rating > 0) {
                 if($rating == $max_1 || $rating == $max_2)
                 {
@@ -244,7 +250,10 @@ $current_file_name = basename($_SERVER['PHP_SELF']);
         else {
             if($rating > 0) {
                 if($rating == $max_1 || $rating == $max_2) {
-                    if($row['position'] != 1) {
+                      $pos =  explode('/', $row['pos']);
+    		$position =  intval($pos[0]);
+           
+                    if($position != 1) {
                         $profitloss = 10*0-10;
                     }
                     else {

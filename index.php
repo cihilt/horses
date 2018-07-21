@@ -31,7 +31,12 @@ if ($result1->num_rows > 0) {
                 $avgrank = number_format($row['avgrank'], 2);
                 $odds = str_replace("$", "", $row["horse_fixed_odds"]);
                 // echo $row['horse_name'] . " " . $raceid . " ";
-                if ($row['position'] < 2) {
+                  $pos =  explode('/', $row['pos']);
+    		$position =  intval($pos[0]);
+           
+                   
+       
+                if ($position < 2) {
                     $profit = 10 * $odds - 10;
                   //  echo $profit . " Profit";
                     $totalprofit += $profit;
@@ -101,7 +106,9 @@ if ($result1->num_rows > 0) {
                 $odds = str_replace("$","" , $row["horse_fixed_odds"]);
                 
                 $profitloss = "";
-                if($rating && $row['position'] > 2) {
+                    $pos =  explode('/', $row['pos']);
+    		$position =  intval($pos[0]);
+                if($rating && $position > 2) {
                     if($rating > 0) {
                         
                         if($rating == $max_1 || $rating == $max_2)
@@ -117,7 +124,9 @@ if ($result1->num_rows > 0) {
                 else {
                     if($rating > 0) {
                         if($rating == $max_1 || $rating == $max_2) {
-                            if($row['position'] != 1) {
+                                $pos =  explode('/', $row['pos']);
+    		$position =  intval($pos[0]);
+                            if($position != 1) {
                                 $profitloss = 10*0-10;
                             }
                             else {
