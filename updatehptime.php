@@ -50,7 +50,7 @@ if ($result2->num_rows > 0) {
     // output data of each row
     while ($row = $result2->fetch_assoc()) {
 
-        $sql2 = "SELECT *  FROM results LEFT JOIN races ON races.race_id = results.race_id WHERE results.race_id = " . $row['race_id'];
+        $sql2 = "SELECT *  FROM horses LEFT JOIN races ON races.race_id = horses.race_id WHERE horses.race_id = " . $row['race_id'];
 
         $result3 = $conn->query($sql2);
         $countofhorses = $result3->num_rows;
@@ -113,7 +113,8 @@ $result6 = $conn->query($sql6);
 //$sql5 = "SELECT *  FROM `maxsectional` LEFT JOIN sec_avg_data ON sec_avg_data.race_id = maxsectional.race_id AND sec_avg_data.distance = maxsectional.distance";
 
 $sql5 = "SELECT *  FROM `maxsectional` LEFT JOIN sec_avg_data ON sec_avg_data.race_id = maxsectional.race_id AND sec_avg_data.distance = maxsectional.distance
-LEFT JOIN rank_avg_data ON rank_avg_data.race_id = maxsectional.race_id AND rank_avg_data.distance = maxsectional.distance";
+LEFT JOIN rank_avg_data ON rank_avg_data.race_id = maxsectional.race_id AND rank_avg_data.distance = maxsectional.distance
+LEFT JOIN rankavg ON maxsectional.horse_name = rankavg.name";
 $result5 = $conn->query($sql5);
 if ($result5->num_rows > 0) {
     // output data of each row
@@ -122,7 +123,7 @@ if ($result5->num_rows > 0) {
 
         $distance = $row['distance'];
 
-        $sql2 = "SELECT *  FROM results LEFT JOIN races ON races.race_id = results.race_id WHERE results.race_id = " . $row['race_id'];
+        $sql2 = "SELECT *  FROM horses LEFT JOIN races ON races.race_id = horses.race_id WHERE horses.race_id  = " . $row['race_id'];
 
         $result3 = $conn->query($sql2);
         $countofhorses = $result3->num_rows;
@@ -146,7 +147,7 @@ if ($result5->num_rows > 0) {
         $per = ($cnt / $countofhorses) * 100;
         //Checking rank value 
         if ($per1 > 40) {
-            $rank = $row['rank'];
+            $rank = $row['avgrank'];
         } else {
             $rank = 0;
         }
