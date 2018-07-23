@@ -182,18 +182,21 @@ $current_file_name = basename($_SERVER['PHP_SELF']);
         $avgrank =  number_format($row['avgrank'],2);
         $odds = str_replace("$","" , $row["horse_fixed_odds"]);
         if($cnt<3){
-          $pos =  explode('/', $row['pos']);
-    		$position =  intval($pos[0]);
+         // $pos =  explode('/', );
+    		$position = $row['position'];
+                    //var_dump($position);
+               if(!empty($position)){
             if($position<2){
                 $profit = 10*$odds-10;
             }else{
                $profit = -10; 
             }
-        } else {
-            $profit ="";
+        }else{
+            $profit = "";
         }
-        
-        
+        }else{
+            $profit = "";
+        }
 
 
         /*
@@ -231,9 +234,11 @@ $current_file_name = basename($_SERVER['PHP_SELF']);
         }*/
         
         $profitloss = "";
-          $pos =  explode('/', $row['pos']);
-    		$position =  intval($pos[0]);
-           
+       //   $pos =  explode('/', $row['pos']);
+    		//$position =  intval($pos[0]);
+           $position = $row['position'];
+                    //var_dump($position);
+               if(!empty($position)){
                    
         if($rating && $position > 2) {
             if($rating > 0) {
@@ -264,7 +269,9 @@ $current_file_name = basename($_SERVER['PHP_SELF']);
                     $profitloss = "";
                 }
             }
-        }
+               }}else{
+                   $profitloss ="";
+               }
         
          echo "<tr>"
                                 . "<td>" . $row["horse_number"] . "</td>"
