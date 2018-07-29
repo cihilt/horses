@@ -1,175 +1,155 @@
 <?php
 include('constant.php');
+
 // Check connection
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 session_start();
+
 if (!isset($_SESSION['mname'])) {
     $_SESSION['mname'] = $_REQUEST['mname'];
 }
+
 $raceid = $_REQUEST['raceid'];
+
 $avg = 0;
 if(isset($_REQUEST['avg'])){
-$avg = $_REQUEST['avg'];
+    $avg = $_REQUEST['avg'];
 }
 
-
-//$sql = "SELECT *, MIN(time) minimumtime,AVG(time) avgtime FROM data WHERE `name` IN (";
-$sql = "SELECT * , MIN(data.time) minimumtime FROM horses LEFT JOIN data ON horses.horse_name = data.name WHERE horses.race_id =" . $raceid;
-
-//$sql .= " GROUP BY name,`distance`";
-$sql .= " GROUP BY id";
+$sql = "SELECT * , MIN(data.time) minimumtime FROM horses LEFT JOIN data ON horses.horse_name = data.name WHERE horses.race_id =" . $raceid." GROUP BY id";
 $result = $conn->query($sql);
 
-
 $meetingid = $_REQUEST['meetingid'];
-//$sql = "SELECT *, MIN(time) minimumtime,AVG(time) avgtime FROM data WHERE `name` IN (";
+
 $sql1 = "SELECT *  FROM races WHERE meeting_id =" . $meetingid . " ORDER by race_id";
 $result1 = $conn->query($sql1);
 
-
 $race_id = $raceid;
-$sql2 = "SELECT *  FROM results LEFT JOIN races ON races.race_id = results.race_id WHERE results.race_id = " . $race_id;
 
+$sql2 = "SELECT *  FROM results LEFT JOIN races ON races.race_id = results.race_id WHERE results.race_id = " . $race_id;
 $result2 = $conn->query($sql2);
 ?>
+
 <!DOCTYPE html>
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <title>Horses Data</title>
-       <script src=https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js></script>
-   <!-- Latest compiled and minified CSS -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-
-<!-- Optional theme -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
-
-<!-- Latest compiled and minified JavaScript -->
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+        
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+        
+        <!-- Optional theme -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
         <link rel="stylesheet" id="main-css" href="main.css" type="text/css" media="all">
-     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.9/css/jquery.dataTables.min.css"/>
-
+        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.9/css/jquery.dataTables.min.css"/>
+        
+        <!-- Latest compiled and minified JavaScript -->
+        <script src=https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
         <script type="text/javascript" src="https://cdn.datatables.net/1.10.9/js/jquery.dataTables.min.js"></script>
-
-
-    <ul> <li><a href="/">Home</a></li>
-        <li><a href="meeting.php">Meetings</a></li>
-        <li><a href="result.php" >Results</a></li>
-        <li><a class="active"><?php echo $_SESSION['mname']; ?></a></li>
-
-        <?php
-        if ($result1->num_rows > 0) {
-            // output data of each row
-            while ($row = $result1->fetch_assoc()) {
-                ?>
-                <li><a href=horses.php?raceid=<?php echo $row['race_id'] ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $row['race_distance'] ?> <?php if ($row['race_id'] == $_REQUEST['raceid']) { ?>class="active" <?php } ?>><?php echo $row['race_number'] ?></a></li>
-
-
-
-                <?php
-            }
-        }
-        ?>
-                <li class="pull-right">   <a href="rating.php?raceid=<?php echo $_REQUEST['raceid'] ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $_REQUEST['rd'] ?>&avg=0" class="dropdown-item active" >Show Rating</a></li>
-                        <li class="pull-right"> <a href="rating.php?raceid=<?php echo $_REQUEST['raceid'] ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $_REQUEST['rd'] ?>&avg=1" class="dropdown-item active" >Show Average</a></li>
-           
-    </ul>
-    <div class="container-fluid">
-      
-        <h1>Horses Data - Distance <?php echo $_REQUEST['rd']; ?> </h1>
-                <table id="employee_grid" class="display" width="100%" cellspacing="0">
-                    <thead>
-                        <tr>
-                            <th>No</th>
-                            <th>Name</th>
-                            <th>Form</th>
-                            <th>Odds</th>
-                            <th>H2H</th>
-                            <th>Position</th>
-                            <th>Length</th>
-                            <th>Track</th>
-                            <th>Orig Dist</th>
-                            <th>Distance</th>
-                            <th>Weight</th>
-                            <th>Last Weight</th>
-                            <th>Sectional</th>
-                            <th>Min Time</th>
-                            <th>Handicap</th>
-<th>Rank</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-                        if ($result->num_rows > 0) {
-                            // output data of each row
-                            while ($row = $result->fetch_assoc()) {
-                         
-                               
-                                $distance = round($row["original_distance"] / 100);
-                                $distance = $distance * 100;
-                                $newhandicap = newvalue($row["length"], $row["original_distance"], $distance, $row["pos"], number_format($row["minimumtime"], 2));
-                                $newhandi = number_format($newhandicap, 3);
-                                // $newhandicap = newvalue($row["length"], $row["original_distance"], $row["distance"], $row["pos"], number_format($row["minimumtime"],2));
-
-                                echo "<tr>"
-                                . "<td>" . $row["horse_number"] . "</td>"
-                                . "<td>" . $row["horse_name"] . "</td>"
-                                . "<td>" . $row["horse_latest_results"] . "</td>"
-                                . "<td>" . $row["horse_fixed_odds"] . "</td>"
-                                . "<td>" . $row["horse_h2h"] . "</td>"
-                                . "<td>" . $row["pos"] . "</td>"
-                                . "<td>" . $row["length"] . "</td>"
-                                . "<td>" . $row["condition"] . "</td>"
-                                . "<td>" . $row["original_distance"] . "</td>"
-                                . "<td>" . $distance . "</td>"
-                                . "<td>" . $row["weight"] . "</td>"
-                                . "<td>" . $row["horse_weight"] . "</td>"
-                                . "<td>" . $row["sectional"] . "</td>"
-                                . "<td>" . $row["time"] . "</td>"
-                                . "<td>" . $row["handicap"]. "</td>"
-                                         . "<td>" . $row["rank"]. "</td>"
-                                . "</tr>";
-                            }
-                        } else {
-                            echo "0 results";
+    </head>
+    <div class="">
+        <ul> 
+            <li><a href="/">Home</a></li>
+            <li><a href="meeting.php">Meetings</a></li>
+            <li><a href="result.php" >Results</a></li>
+            <li><a class="active"><?php echo $_SESSION['mname']; ?></a></li>
+    
+            <?php
+                if ($result1->num_rows > 0) {
+                    // output data of each row
+                    while ($row = $result1->fetch_assoc()) {
+            ?>
+                    <li><a href=horses.php?raceid=<?php echo $row['race_id'] ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $row['race_distance'] ?> <?php if ($row['race_id'] == $_REQUEST['raceid']) { ?>class="active" <?php } ?>><?php echo $row['race_number'] ?></a></li>
+            <?php
+                    }
+                }
+            ?>
+            <li class="pull-right"> <a href="rating.php?raceid=<?php echo $_REQUEST['raceid'] ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $_REQUEST['rd'] ?>&avg=0" class="dropdown-item active" >Show Rating</a></li>
+            <li class="pull-right"> <a href="rating.php?raceid=<?php echo $_REQUEST['raceid'] ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $_REQUEST['rd'] ?>&avg=1" class="dropdown-item active" >Show Average</a></li>
+                    
+        </ul>
+        <div class="container-fluid">
+            <h1>Horses Data - Distance <?php echo $_REQUEST['rd']; ?></h1>
+            <table id="employee_grid" class="display" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Name</th>
+                        <th>Form</th>
+                        <th>Odds</th>
+                        <th>H2H</th>
+                        <th>Position</th>
+                        <th>Length</th>
+                        <th>Track</th>
+                        <th>Orig Dist</th>
+                        <th>Distance</th>
+                        <th>Weight</th>
+                        <th>Last Weight</th>
+                        <th>Sectional</th>
+                        <th>Min Time</th>
+                        <th>Handicap</th>
+                        <th>Rank</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                    if ($result->num_rows > 0) {
+                        // output data of each row
+                        while ($row = $result->fetch_assoc()) {
+                            $distance = round($row["original_distance"] / 100);
+                            $distance = $distance * 100;
+                            $newhandicap = newvalue($row["length"], $row["original_distance"], $distance, $row["pos"], number_format($row["minimumtime"], 2));
+                            $newhandi = number_format($newhandicap, 3);
+                            echo "<tr>"
+                            . "<td>" . $row["horse_number"] . "</td>"
+                            . "<td>" . $row["horse_name"] . "</td>"
+                            . "<td>" . $row["horse_latest_results"] . "</td>"
+                            . "<td>" . $row["horse_fixed_odds"] . "</td>"
+                            . "<td>" . $row["horse_h2h"] . "</td>"
+                            . "<td>" . $row["pos"] . "</td>"
+                            . "<td>" . $row["length"] . "</td>"
+                            . "<td>" . $row["condition"] . "</td>"
+                            . "<td>" . $row["original_distance"] . "</td>"
+                            . "<td>" . $distance . "</td>"
+                            . "<td>" . $row["weight"] . "</td>"
+                            . "<td>" . $row["horse_weight"] . "</td>"
+                            . "<td>" . $row["sectional"] . "</td>"
+                            . "<td>" . $row["time"] . "</td>"
+                            . "<td>" . $row["handicap"]. "</td>"
+                            . "<td>" . $row["rank"]. "</td>"
+                            . "</tr>";
                         }
-                       
-                        ?>
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <th>Horse No.</th>
-                            <th>Horse Name</th>
-                            <th>Odds</th>
-                            <th>H2H</th>
-                            <th>Position</th>
-                            <th>Length</th>
-                            <th>Condition</th>
-                            <th>Orig Dist</th>
-                            <th>Distance</th>
-                            <th>Weight</th>
-                            <th>Last Weight</th>
-                            <th>Sectional</th>
-                            <th>Minimum Time</th>
-                            <th>Handicap</th>
-                            <th>NewTime</th>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
+                    } else {
+                        echo "0 results";
+                    }
+                    ?>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th>Horse No.</th>
+                        <th>Horse Name</th>
+                        <th>Odds</th>
+                        <th>H2H</th>
+                        <th>Position</th>
+                        <th>Length</th>
+                        <th>Condition</th>
+                        <th>Orig Dist</th>
+                        <th>Distance</th>
+                        <th>Weight</th>
+                        <th>Last Weight</th>
+                        <th>Sectional</th>
+                        <th>Minimum Time</th>
+                        <th>Handicap</th>
+                        <th>NewTime</th>
+                    </tr>
+                </tfoot>
+            </table>
         </div>
 
-
-<?php
-
-
-
-
-?>
-    
-  
         <div class="">
             <h1>Race Results</h1>
             <div class="">
@@ -203,31 +183,23 @@ $result2 = $conn->query($sql2);
                         $conn->close();
                         ?>
                     </tbody>
-
                 </table>
             </div>
         </div>
-
     </div>
-<script type="text/javascript">
+        
+    <script type="text/javascript">
         $(document).ready(function () {
             $('#employee_grid').DataTable({ 
              "pageLength": 25,     
-          
             });
-            
-              $('#employee_grid1').DataTable({
-
+            $('#employee_grid1').DataTable({
                 "responsive": true,
             });
         });
-        
-        
     </script>
-
-
-    <?php
-
+    
+<?php
     function newvalue($length, $distance, $orgdistance, $pos, $time) {
         $modifier = 0;
         //Getting the postion of the horse
@@ -249,12 +221,7 @@ $result2 = $conn->query($sql2);
           } */
         $modifier = 0.05;
         $remainder = get_remainder($distance);
-
-
-
-
         if ($position == 1) {
-
             if ($distance < $orgdistance) {
 
                 $newtime = win_rounded_up($time, $length, $modifier, $remainder);
@@ -272,7 +239,6 @@ $result2 = $conn->query($sql2);
     }
 
     function get_remainder($distance) {
-
         if ($distance % 10 < 5) {
             $distance -= $distance % 10;
         } else {
@@ -290,14 +256,12 @@ $result2 = $conn->query($sql2);
 
     //if horse wins   
     function win_rounded_up($time, $length, $modifier, $remainder) {
-
         $newtime = $time + (0.0007 * $remainder);
         return $newtime;
     }
 
     //if horse wins  
     function win_rounded_down($time, $length, $modifier, $remainder) {
-
         $newtime = $time - (0.0007 * $remainder);
         return $newtime;
     }
@@ -305,15 +269,13 @@ $result2 = $conn->query($sql2);
     //if horse loses  
     function loses_rounded_up($time, $length, $modifier, $remainder) {
         //time+(length*modifier)-(0.0007*$remainder);
-
         $newtime = $time + ($length * $modifier) + (0.0007 * $remainder);
         return $newtime;
     }
 
     //if horse loses  
     function loses_rounded_down($time, $length, $modifier, $remainder) {
-
         $newtime = $time + ($length * $modifier) - (0.0007 * $remainder);
         return $newtime;
     }
-    ?>
+?>

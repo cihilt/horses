@@ -1,22 +1,25 @@
 <?php
 
 include('constant.php');
+
 // Check connection
+
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
+
+// first update 
+
 $sqlseq = "UPDATE `data` SET `sectional` = 0 WHERE `sectional`='-'"; //Resetting Rating 
 $resultseq = $conn->query($sqlseq);
-//$sql = "SELECT *, MIN(time) minimumtime,AVG(time) avgtime FROM data WHERE `name` IN (";
+
 $sql = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2 FROM horses LEFT JOIN data ON horses.horse_name = data.name  GROUP BY id";
-
-
 $result = $conn->query($sql);
+$updatehptime = '';
 
 if ($result->num_rows > 0) {
     // output data of each row
     while ($row = $result->fetch_assoc()) {
-
 
         $distance = round($row["original_distance"] / 100);
         $distance = $distance * 100;
@@ -31,145 +34,154 @@ if ($result->num_rows > 0) {
             $rating = 0;
         }
         $id = $row['id'];
-        // $newhandicap = newvalue($row["length"], $row["original_distance"], $row["distance"], $row["pos"], number_format($row["minimumtime"],2));
-        $updatehptime = "UPDATE `data` SET `handicap`=$newhandi WHERE id = $id";
-        echo $updatehptime . "<br>";
-        echo "-------------------";
-        $result2 = $conn->query($updatehptime);
+        $updatehptime .= "UPDATE `data` SET `handicap`=$newhandi WHERE id = $id;  ";
     }
+    echo $updatehptime . "<br><br><br><br><br><br>";
+    echo "--------------------------------------------------------------------------------------------";
+    $result2 = $conn->query($updatehptime);
 } else {
     echo "0 results";
 }
+
 //Query to update the rank avg
+
+$numArray = array();
+$numArray[0] = 0;
+$sql20 = "SELECT COUNT(horses.race_id) as num, horses.race_id FROM horses LEFT JOIN races ON races.race_id = horses.race_id GROUP BY horses.race_id ORDER BY horses.race_id";
+
+$result20 = $conn->query($sql20);
+if ($result20->num_rows > 0) {
+    while ($rownum = $result20->fetch_assoc()) {
+        $numArray[$rownum[race_id]] = $rownum[num];
+    }
+}
+
 $sql7 = "Update `data` SET rank = NULL"; //Resetting Rank
 $result7 = $conn->query($sql7);
+
 $sql2 = "SELECT *  FROM `minihand` LEFT JOIN rank_avg_data ON rank_avg_data.race_id = minihand.race_id AND rank_avg_data.distance = minihand.distance";
+$updaterankavg = '';
+$rank_avg = 0;
 
 $result2 = $conn->query($sql2);
 if ($result2->num_rows > 0) {
     // output data of each row
     while ($row = $result2->fetch_assoc()) {
 
-        $sql2 = "SELECT *  FROM horses LEFT JOIN races ON races.race_id = horses.race_id WHERE horses.race_id = " . $row['race_id'];
-
-        $result3 = $conn->query($sql2);
-        $countofhorses = $result3->num_rows;
-
+        $countofhorses = intval($numArray[$row['race_id']]);
+        //echo $countofhorses;
         $handicap = $row['minihandi'];
         $distance = $row['distance'];
         $horsename = str_replace("'", "\'", $row['horse_name']);
         $arr = explode(",", $row["handis"]);
         $cnt = count($arr);
         $per = ($cnt / $countofhorses) * 100;
+
         if ($per > 40) {
             $rank_avg = rank_avg($row["minihandi"], $arr, 0);
-            $updaterankavg = "UPDATE `data` SET `rank` = '$rank_avg' WHERE  `distance`= '$distance' AND `name`= '$horsename'";
-            echo $updaterankavg . "<br>";
-            echo "-------------------";
+            $rank_avg = number_format($rank_avg, 2, '.', '');
+            $updaterankavg = "UPDATE data SET rank = ".$rank_avg." WHERE  distance= '".$distance."' AND name= '".$horsename."';";
+            $result4 = $conn->query($updaterankavg);
+            echo $updaterankavg . "";
         }
-
-        $result4 = $conn->query($updaterankavg);
     }
+    echo "----------------------------------------------------------------------------------------------";
 }
-/*
-  $sql3 = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2 FROM horses
-  LEFT JOIN data ON horses.horse_name = data.name
-  LEFT JOIN rankavg ON horses.horse_name = rankavg.name GROUP BY id";
-  $result3 = $conn->query($sql3);
 
+// third update
 
-  if ($result3->num_rows > 0) {
-  // output data of each row
-  while ($row = $result3->fetch_assoc()) {
-
-  $rating = 0;
-  if (strlen($row["horse_fixed_odds"]) > 0) {
-  $rating = rating_system($row['avgrank'], $row["sectional"], $row["weight"], $row["horse_weight"]);
-  $rating = number_format($rating, 0);
-  } else {
-  $rating = 0;
-  }
-  $id = $row['id'];
-  if($id>0){
-  // $newhandicap = newvalue($row["length"], $row["original_distance"], $row["distance"], $row["pos"], number_format($row["minimumtime"],2));
-  $updatehptime1 = "UPDATE `data` SET `rating`=$rating WHERE id = $id";
-  echo $updatehptime1 . "<br>";
-  echo "-------------------";
-  $result2 = $conn->query($updatehptime);
-  }
-  }
-  } else {
-  echo "0 results";
-  }
- */
-//Update rating using the avg sectional formula
-//$sql5 = "SELECT *  FROM `maxsectional` LEFT JOIN sec_avg_data ON sec_avg_data.race_id = maxsectional.race_id AND sec_avg_data.distance = maxsectional.distance";
-
-
-$sql6 = "Update `data` SET rating = NULL"; //Resetting Rating 
+$sql6 = "Update `data` SET rating = NULL"; //Resetting Rating
 $result6 = $conn->query($sql6);
 
+$rank_avg_dataArray_id = array();
+$rank_avg_dataArray = array();
+$sql_rank_avg_data = "SELECT race_id, distance, handis  FROM rank_avg_data";
+$result_rank_avg_data = $conn->query($sql_rank_avg_data);
+if ($result_rank_avg_data->num_rows > 0) {
+    while($row = $result_rank_avg_data->fetch_assoc()) {
+        $rank_avg_dataArray_id[] = $row['handis'];
+        $rank_avg_dataArray[] = array($row['race_id'], $row['distance']);
+    }            
+}
+//print_r($rank_avg_dataArray);
 
-//$sql5 = "SELECT *  FROM `maxsectional` LEFT JOIN sec_avg_data ON sec_avg_data.race_id = maxsectional.race_id AND sec_avg_data.distance = maxsectional.distance";
+$rankavgArray = array();
+$rankavgArray_id = array();
+$sql_rankavg = "SELECT name, avgrank FROM rankavg";
+$result_rankavg = $conn->query($sql_rankavg);
+if ($result_rankavg->num_rows > 0) {
+    while($row = $result_rankavg->fetch_assoc()) {
+        $rankavgArray_id[] = $row['name'];
+        $rankavgArray[] = $row['avgrank'];
+    }            
+}
+//print_r($rankavgArray);
 
-$sql5 = "SELECT *  FROM `maxsectional` LEFT JOIN sec_avg_data ON sec_avg_data.race_id = maxsectional.race_id AND sec_avg_data.distance = maxsectional.distance
-LEFT JOIN rank_avg_data ON rank_avg_data.race_id = maxsectional.race_id AND rank_avg_data.distance = maxsectional.distance
-LEFT JOIN rankavg ON maxsectional.horse_name = rankavg.name";
+$sec_avg_data = array();
+$sec_avg_data_id = array();
+$sql_sec_avg_data = "SELECT * FROM `sec_avg_data`";
+$result_sec_avg_data = $conn->query($sql_sec_avg_data);
+if ($result_sec_avg_data->num_rows > 0) {
+    while($row = $result_sec_avg_data->fetch_assoc()) {
+        $sec_avg_data_id[] = $row['sectionals'];
+        $sec_avg_data[] = array($row['race_id'], $row['distance']);
+    }            
+}
+//print_r($sec_avg_data);
+
+$sql5 = "SELECT * FROM `maxsectional`" ;
 $result5 = $conn->query($sql5);
+
+$updaterankavg1 = '';
+
 if ($result5->num_rows > 0) {
     // output data of each row
     while ($row = $result5->fetch_assoc()) {
 
-
         $distance = $row['distance'];
-
-        $sql2 = "SELECT *  FROM horses LEFT JOIN races ON races.race_id = horses.race_id WHERE horses.race_id  = " . $row['race_id'];
-
-        $result3 = $conn->query($sql2);
-        $countofhorses = $result3->num_rows;
-
+        $countofhorses = intval($numArray[$row['race_id']]);
         $handicap = $row['maxsectional'];
-
-
-
-        $handis = $row['handis'];
+        
+        if(in_array(array($row['race_id'], $distance),$rank_avg_dataArray)){
+        	$handis = $rank_avg_dataArray_id[ array_search( array($row['race_id'], $distance), $rank_avg_dataArray ) ];
+        }else {$handis = '';}
+        
         $arr2 = explode(",", $handis);
         $cnt1 = count($arr2); //Count of Handis
         $per1 = ($cnt1 / $countofhorses) * 100;
-
-
         $horsename = str_replace("'", "\'", $row['horse_name']);
 
         //Getting % of sectionals
-        $arr = explode(",", $row["sectionals"]);
-
+        
+        $sectionals = '';
+        if(in_array(array($row['race_id'], $distance), $sec_avg_data)){
+        	$sectionals = $sec_avg_data_id[ array_search( array($row['race_id'], $distance), $sec_avg_data ) ];
+        }else {$sectionals = '';}  
+        
+        $arr = explode(",", $sectionals);
         $cnt = count($arr);
         $per = ($cnt / $countofhorses) * 100;
         //Checking rank value 
         if ($per1 > 40) {
-            $rank = $row['avgrank'];
+            
+            if(in_array($row['horse_name'], $rankavgArray_id)){
+            	$rank = $rankavgArray[ array_search( $row['horse_name'], $rankavgArray_id ) ];
+            }else {$rank = 0;}
+            
         } else {
             $rank = 0;
         }
+        
         //Checking sectional value 
         if ($per > 40) {
             $sectional_avg = sectional_avg($row["maxsectional"], $arr, 0);
         } else {
             $sectional_avg = 0;
         }
-
-      
-
-
-        //echo $sectional_avg."<br/>";
         $rating = rating_system_new($rank, $sectional_avg, $row["weight"], $row["horse_weight"]);
-        // echo $rating."<br/>";
-        $updaterankavg1 = "UPDATE `data` SET `rating` = '$rating' WHERE `distance`= '$distance' AND `name`= '$horsename'";
+        $updaterankavg1 = "UPDATE `data` SET `rating` = $rating WHERE `distance`= '$distance' AND `name`= '$horsename';  ";
+        echo $updaterankavg1 . " -";
         $result4 = $conn->query($updaterankavg1);
-
-        echo $updaterankavg1 . "<br>";
-
-        echo "-------------------";
     }
 }
 
@@ -180,9 +192,6 @@ function newvalue($length, $distance, $orgdistance, $pos, $time) {
     $position = intval($pos[0]);
     $modifier = MODIFIER;
     $remainder = get_remainder($distance);
-
-
-
 
     if ($position == 1) {
 
@@ -325,7 +334,7 @@ function rank_avg($value, $array, $order = 0) {
 // calculate the rank
 
     $res = array_sum($keys) / count($keys);
-    return $res / 2;
+        return $res / 2;
 }
 
 function sectional_avg($value, $array, $order = 0) {
