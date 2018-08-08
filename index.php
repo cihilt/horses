@@ -22,7 +22,11 @@ if ($result1->num_rows > 0) {
 
         $sql = "select *, MIN(data.time) minimumtime,MIN(data.time2) minimumtime2,rating rat 
                 from `horses` a
+                
+                
                 LEFT JOIN data ON a.horse_name = data.name 
+                
+                
                 LEFT JOIN rankavg ON a.horse_name = rankavg.name 
                 LEFT JOIN results ON results.horse = a.horse_name
                 WHERE a.race_id = $raceid
@@ -32,7 +36,7 @@ if ($result1->num_rows > 0) {
         $ratin = array();
         if ($result->num_rows > 0) {
             while ($row = $result->fetch_assoc()) {
-                $ratin[] = number_format($gnow['rating'],0);    
+                $ratin[] = number_format($row['rating'], 0);    //
                 $avgrank = number_format($row['avgrank'], 2);
                 $odds = str_replace("$", "", $row["horse_fixed_odds"]);
                 // echo $row['horse_name'] . " " . $raceid . " ";
@@ -88,8 +92,8 @@ if ($result1->num_rows > 0) {
                     else {
                         if($rating > 0) {
                             if($rating == $max_1 || $rating == $max_2) {
-                                    $pos =  explode('/', $row['pos']);
-                $position =  intval($pos[0]);
+                                $pos =  explode('/', $row['pos']);
+                                $position =  intval($pos[0]);
                                 if($position != 1) {
                                     $profitloss = 10*0-10;
                                 }
