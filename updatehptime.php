@@ -10,12 +10,11 @@ if ($conn->connect_error) {
 
 // first update 
 
-$sqlseq = "UPDATE `data` SET `sectional` = 0 WHERE `sectional`='-'"; //Resetting Rating 
-$resultseq = $conn->query($sqlseq);
-
-$sql = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2 FROM horses LEFT JOIN data ON horses.horse_name = data.name  GROUP BY id";
+$sql = "UPDATE `data` SET `sectional` = 0 WHERE `sectional`='-'";                //Resetting Rating 
 $result = $conn->query($sql);
-$updatehptime = '';
+
+$sql = "SELECT * FROM horses LEFT JOIN (SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2 FROM data GROUP BY horse_id) a ON horses.horse_name = a.name";
+$result = $conn->query($sql);
 
 if ($result->num_rows > 0) {
     // output data of each row
@@ -34,65 +33,94 @@ if ($result->num_rows > 0) {
             $rating = 0;
         }
         $id = $row['id'];
-        $updatehptime .= "UPDATE `data` SET `handicap`=$newhandi WHERE id = $id;  ";
+        $updatehptime = "UPDATE `data` SET `handicap`=$newhandi WHERE id = $id;  ";
+        echo $updatehptime . "<br>";
+        $result_first = $conn->query($updatehptime);
     }
-    echo $updatehptime . "<br><br><br><br><br><br>";
+    echo "<br><br><br>";
     echo "--------------------------------------------------------------------------------------------";
-    $result2 = $conn->query($updatehptime);
 } else {
-    echo "0 results";
+    echo "Nothing updated.  0 results.  Try again";
 }
 
-//Query to update the rank avg
+//Second Update
+
+$sql = "Update `data` SET rank = NULL";                                           //Resetting Rank
+$result = $conn->query($sql);
 
 $numArray = array();
 $numArray[0] = 0;
-$sql20 = "SELECT COUNT(horses.race_id) as num, horses.race_id FROM horses LEFT JOIN races ON races.race_id = horses.race_id GROUP BY horses.race_id ORDER BY horses.race_id";
 
-$result20 = $conn->query($sql20);
-if ($result20->num_rows > 0) {
-    while ($rownum = $result20->fetch_assoc()) {
-        $numArray[$rownum[race_id]] = $rownum[num];
+$sql = "SELECT COUNT(horses.race_id) as num, horses.race_id FROM horses LEFT JOIN races ON races.race_id = horses.race_id GROUP BY horses.race_id ORDER BY horses.race_id";
+$result = $conn->query($sql);
+
+if ($result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        $numArray[intval($row['race_id'])] = $row['num'];
     }
 }
 
-$sql7 = "Update `data` SET rank = NULL"; //Resetting Rank
-$result7 = $conn->query($sql7);
+$avgArray = array();
+$rank_avg_dataArray_id = array();
+$rank_avg_dataArray = array();
 
-$sql2 = "SELECT *  FROM `minihand` LEFT JOIN rank_avg_data ON rank_avg_data.race_id = minihand.race_id AND rank_avg_data.distance = minihand.distance";
-$updaterankavg = '';
+$sql = "SELECT * FROM `rank_avg_data` WHERE distance IS NOT NULL";// ) a ON a.race_id = minihand.race_id AND a.distance = minihand.distance
+$result = $conn->query($sql);
+
+if ($result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        $avgArray[] = [$row['race_id'], $row['distance'], $row['handis']];
+        $rank_avg_dataArray_id[] = $row['handis'];
+        $rank_avg_dataArray[] = array($row['race_id'], $row['distance']);
+    }
+}
+
+$sql = "SELECT *  FROM `minihand`";//LEFT JOIN (SELECT * FROM `rank_avg_data` WHERE distance IS NOT NULL ) a ON a.race_id = minihand.race_id AND a.distance = minihand.distance
+$result = $conn->query($sql);
+
 $rank_avg = 0;
+$result_second = array();
 
-$result2 = $conn->query($sql2);
-if ($result2->num_rows > 0) {
+$result = $conn->query($sql);
+if ($result->num_rows > 0) {
     // output data of each row
-    while ($row = $result2->fetch_assoc()) {
+    while ($row = $result->fetch_assoc()) {
+        
+        foreach ($avgArray as $item){
+           if( $item[0] == $row['race_id'] && $item[1] == $row['distance'])
+           $result_second[] = [$row['race_id'],  $row['minihandi'], $row['distance'], $row['horse_name'], $item[2]];
+        }
+    }
+    
+    foreach ($result_second as $row){
 
-        $countofhorses = intval($numArray[$row['race_id']]);
+        $countofhorses = intval($numArray[($row[0]-1)]);
         //echo $countofhorses;
-        $handicap = $row['minihandi'];
-        $distance = $row['distance'];
-        $horsename = str_replace("'", "\'", $row['horse_name']);
-        $arr = explode(",", $row["handis"]);
+        $handicap = $row[1];
+        $distance = $row[2];
+        $horsename = str_replace("'", "\'", $row[3]);
+        $arr = explode(",", $row[4]);
         $cnt = count($arr);
         $per = ($cnt / $countofhorses) * 100;
 
         if ($per > 40) {
-            $rank_avg = rank_avg($row["minihandi"], $arr, 0);
+            $rank_avg = rank_avg($row[1], $arr, 0);
             $rank_avg = number_format($rank_avg, 2, '.', '');
             $updaterankavg = "UPDATE data SET rank = ".$rank_avg." WHERE  distance= '".$distance."' AND name= '".$horsename."';";
             $result4 = $conn->query($updaterankavg);
-            echo $updaterankavg . "";
+            echo $updaterankavg . "<br>";
         }
     }
+    echo "<br><br><br>";
     echo "----------------------------------------------------------------------------------------------";
 }
 
 // third update
 
-$sql6 = "Update `data` SET rating = NULL"; //Resetting Rating
-$result6 = $conn->query($sql6);
+$sql = "Update `data` SET rating = NULL";                                          //Resetting Rating
+$result = $conn->query($sql);
 
+/*
 $rank_avg_dataArray_id = array();
 $rank_avg_dataArray = array();
 $sql_rank_avg_data = "SELECT race_id, distance, handis  FROM rank_avg_data";
@@ -102,7 +130,7 @@ if ($result_rank_avg_data->num_rows > 0) {
         $rank_avg_dataArray_id[] = $row['handis'];
         $rank_avg_dataArray[] = array($row['race_id'], $row['distance']);
     }            
-}
+}*/
 //print_r($rank_avg_dataArray);
 
 $rankavgArray = array();
@@ -180,7 +208,7 @@ if ($result5->num_rows > 0) {
         }
         $rating = rating_system_new($rank, $sectional_avg, $row["weight"], $row["horse_weight"]);
         $updaterankavg1 = "UPDATE `data` SET `rating` = $rating WHERE `distance`= '$distance' AND `name`= '$horsename';  ";
-        echo $updaterankavg1 . " -";
+        echo $updaterankavg1 . "<br>";
         $result4 = $conn->query($updaterankavg1);
     }
 }
