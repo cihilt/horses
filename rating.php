@@ -19,9 +19,10 @@ if(isset($_REQUEST['avg'])){
 if($avg==1){
     
     $sql = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2,AVG(rating) AS rat FROM horses 
-            LEFT JOIN data ON horses.horse_name = data.name 
+            LEFT JOIN data ON horses.horse_name = data.name
             LEFT JOIN rankavg ON horses.horse_name = rankavg.name 
-            LEFT JOIN results ON results.horse = horses.horse_name WHERE rating != 0 AND horses.race_id = $raceid  GROUP BY horse_name ORDER BY avgrank DESC";
+            WHERE horses.race_id = $raceid  GROUP BY horse_name ORDER BY avgrank DESC"; //LEFT JOIN data ON horses.horse_name = data.name 
+    
     $geting = $conn->query($sql);
     
     $ratin = array();
@@ -45,7 +46,7 @@ if($avg==1){
 }else{
     $sql = "SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2 FROM horses LEFT JOIN data ON horses.horse_name = data.name WHERE horses.race_id =" . $raceid . " GROUP BY id";
 }
-
+//var_dump($sql);
 $result = $conn->query($sql);
 
 $meetingid = $_REQUEST['meetingid'];
@@ -151,12 +152,13 @@ $current_file_name = basename($_SERVER['PHP_SELF']);
         <tbody>
 <?php
             if ($result->num_rows > 0) {
-                // output data of each row\
+                
+                // output data of each row
                 $cnt = 1;
                 $ratenow = array();
                 
                 while ($row = $result->fetch_assoc()) {
-                
+                    //var_dump($row);
                     if($avg==1){
                         $rating = number_format($row["rat"],2);
                         $ratenow[] = $rating;
@@ -171,14 +173,14 @@ $current_file_name = basename($_SERVER['PHP_SELF']);
                         
                         if($cnt<3){
                             // $pos =  explode('/', );
-                            $position = $row['position'];
+                            $position = $row['pos'];
                             //var_dump($position);
                             
                             if(!empty($position)){
                                 if($position<2){
                                     $profit = 10*$odds-10;
                                 }else{
-                                    $profit = -10; 
+                                    $profit = -10;  
                                 }
                             }else{
                                 $profit = "";
@@ -190,7 +192,7 @@ $current_file_name = basename($_SERVER['PHP_SELF']);
                         $profitloss = "";
                         //$pos =  explode('/', $row['pos']);
                         //$position =  intval($pos[0]);
-                        $position = $row['position'];
+                        $position = $row['pos'];
                         //var_dump($position);
                         
                         if(!empty($position)){
@@ -235,6 +237,7 @@ $current_file_name = basename($_SERVER['PHP_SELF']);
                         . "<td>" . $avgrank . "</td>"
                         . "<td>" . $profit. "</td>"
                         . "</tr>";
+                        $row["horse_id"];
                     } else{
                         echo "<tr>"
                         . "<td>" . $row["horse_number"] . "</td>"
