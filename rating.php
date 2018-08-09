@@ -6,11 +6,12 @@ die("Connection failed: " . $conn->connect_error);
 }
 session_start();
 if (!isset($_SESSION['mname'])) {
-$_SESSION['mname'] = $_REQUEST['mname'];
+    $_SESSION['mname'] = $_REQUEST['mname'];
 }
 $s1 = "";
 $s2 = "";
 $raceid = $_REQUEST['raceid'];
+$meetingid = $_REQUEST['meetingid'];
 $avg = 0;
 if(isset($_REQUEST['avg'])){
     $avg = $_REQUEST['avg'];
@@ -49,7 +50,6 @@ if($avg==1){
 //var_dump($sql);
 $result = $conn->query($sql);
 
-$meetingid = $_REQUEST['meetingid'];
 $sql1 = "SELECT *  FROM races WHERE meeting_id =" . $meetingid . " ORDER by race_id";
 $result1 = $conn->query($sql1);
 //print_r($result1);
@@ -118,7 +118,7 @@ $current_file_name = basename($_SERVER['PHP_SELF']);
         <thead>
             <tr>
 <?php      
-                if($avg==1){
+                if($avg==1 && $result2->num_rows > 0){
 ?>
                     <th>No</th>
                     <th>Name</th>
@@ -166,7 +166,7 @@ $current_file_name = basename($_SERVER['PHP_SELF']);
                         $rating = $row["rating"];
                     }
                     
-                    if($avg==1){
+                    if($avg==1 && $result2->num_rows > 0){
                         
                         $avgrank =  number_format($row['avgrank'],2);
                         $odds = str_replace("$","" , $row["horse_fixed_odds"]);
@@ -196,6 +196,7 @@ $current_file_name = basename($_SERVER['PHP_SELF']);
                         //var_dump($position);
                         
                         if(!empty($position)){
+                            
                             
                             if($rating && $position > 2) {
                                 if($rating > 0) {
@@ -237,7 +238,7 @@ $current_file_name = basename($_SERVER['PHP_SELF']);
                         . "<td>" . $avgrank . "</td>"
                         . "<td>" . $profit. "</td>"
                         . "</tr>";
-                        $row["horse_id"];
+                        //$row["horse_id"];
                     } else{
                         echo "<tr>"
                         . "<td>" . $row["horse_number"] . "</td>"
@@ -266,7 +267,8 @@ $current_file_name = basename($_SERVER['PHP_SELF']);
         <tfoot>
             <tr>
 <?php      
-                if($avg==1){
+                if($avg==1 && $result2->num_rows > 0){
+                    
 ?>
                     <th>No</th>
                     <th>Name</th>

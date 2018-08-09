@@ -15,7 +15,7 @@ $ratingloss = 0;
 
 $data_data = array();
 $data_id = array();
-$sql = "select name, rating, pos, MIN(data.time) minimumtime,MIN(data.time2) minimumtime2 from `data` GROUP BY name";
+$sql = "select name, rating, pos, MIN(data.time) minimumtime,MIN(data.time2) minimumtime2 from `data` GROUP BY name ";//WHERE sectional = 0
 $result = $conn->query($sql);
 if ($result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
@@ -47,7 +47,7 @@ if ($result->num_rows > 0) {
 }
 
 $horse_data = array();
-$sql = "select * from `horses`";
+$sql = "select * from `horses` order by horse_id asc";
 $result = $conn->query($sql);
 if ($result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
@@ -69,22 +69,21 @@ if ($result->num_rows > 0) {
              $pos = '';
         }
         
-        $avgrank = '';
+        $avg_rank = '';
         if(in_array($row['horse_name'], $rankavg_id)){
-             $avgrank = $rankavg_data[array_search($row['horse_name'], $rankavg_id)];
+             $avg_rank = $rankavg_data[array_search($row['horse_name'], $rankavg_id)];
         }else {
-             $avgrank = '';
+             $avg_rank = '';
         }
         
         $position = '';
         if(in_array($row['horse_name'], $results_id)){
-             $position = $results_data[array_search($row['horse_name'], $results_id)];
+            $position = $results_data[array_search($row['horse_name'], $results_id)];
+            $horse_data[] = array($row['race_id'], $row['horse_name'], $minimumtime, $minimumtime2, $rating, $avg_rank, $position, $row['horse_fixed_odds'], $pos);
         }else {
-             $position = '';
-        }        
-            
-        $horse_data[] = array($row['race_id'], $row['horse_name'], $minimumtime, $minimumtime2, $rating, $avgrank, $position, $row['horse_fixed_odds'], $pos);
-    }                        ////////0                    1             2               3          4        5         6                  7                8
+            $position = '';
+        }
+    }
 }
 
 $sql_raceid = "SELECT race_id  FROM races";
@@ -94,8 +93,10 @@ if ($result_raceid->num_rows > 0) {
     // output data of each row
     while ($row_id = $result_raceid->fetch_assoc()) {
         
-        $first_id = array_search($row_id['race_id'], array_column($horse_data, 0));
         $temp_array = $horse_data;
+        
+        
+        $first_id = array_search($row_id['race_id'], array_column($horse_data, 0));
         unset($temp_array[$first_id]);
         $second_id = array_search($row_id['race_id'], array_column($temp_array, 0));
         
