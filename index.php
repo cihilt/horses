@@ -58,7 +58,7 @@ if ($result->num_rows > 0) {
         $pos = '';
         if(in_array($row['horse_name'], $data_id)){
              $index_array = $data_data[array_search($row['horse_name'], $data_id)];
-             $rating = $index_array[0];
+        	     $rating = $index_array[0];
              $minimumtime = $index_array[1];
              $minimumtime2 = $index_array[2];
              $pos = $index_array[3];
@@ -103,6 +103,7 @@ if ($result_raceid->num_rows > 0) {
         $real_result = array($horse_data[$first_id], $horse_data[$second_id]);
 
         $ratin = array();
+
         if (count($real_result) > 0) {
             foreach ($real_result as $row)  {
                 $ratin[] = number_format(floatval($row[5]), 0);    
@@ -121,7 +122,8 @@ if ($result_raceid->num_rows > 0) {
                    
                     $totalloss += $loss;
                 }
-              //  echo "<br/>";
+                echo "race id ".$row_id['race_id'] ." won ".  $totalprofit ." " . $totalloss;
+		echo "<br />";
             }
             $max_1 = $max_2 = -1;
             for($i=0; $i<count($ratin); $i++) {
@@ -148,7 +150,7 @@ if ($result_raceid->num_rows > 0) {
                         if($rating == $max_1 || $rating == $max_2)
                         {
                             $profitloss = 10*0-10;
-                        }
+			}
                         else
                         {
                             $profitloss = "";
