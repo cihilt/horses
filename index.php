@@ -122,7 +122,7 @@ if ($result_raceid->num_rows > 0) {
                    
                     $totalloss += $loss;
                 }
-                echo "race id ".$row_id['race_id'] ." won ".  $totalprofit ." " . $totalloss;
+                echo "race id ".$row_id['race_id'] ."&nbsp&nbsp&nbsp won \$".  $totalprofit ."&nbsp&nbsp&nbsp Revenue " . $totalloss;
 		echo "<br />";
             }
             $max_1 = $max_2 = -1;
