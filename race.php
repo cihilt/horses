@@ -43,7 +43,7 @@ $result1 = $conn->query($sql);
             // output data of each row
             while ($row = $result1->fetch_assoc()) {
                 ?>
-                <li><a href="horses.php?raceid=<?php echo $row['race_id'] ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $row['race_distance']; ?>"><?php echo $row['race_number'] ?></a></li>
+		<li><a href="rating.php?raceid=<?php echo $row['race_id'] ?>&meetingid=<?php echo $meetingid; ?>&rd=<?php echo $row['race_distance']; ?>&avg=1"><?php echo $row['race_number'] ?></a></li>
              <?php
             }
         }
