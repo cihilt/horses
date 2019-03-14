@@ -1,7 +1,7 @@
 <?php
 date_default_timezone_set("UTC");
 
-// @todo move sensitive data to environment variables
+// @todo move sensitive data to .env
 $servername = "localhost";
 $username = "bettinga";
 $password = "Newcar888!!";
@@ -12,8 +12,8 @@ $mysqli = new mysqli($servername, $username, $password, $dbname);
 
 // Logging
 require_once 'logging.php';
-define('LOG_LEVEL', 'error');
-$logger = new logger('logs.txt', LOG_LEVEL);
+define('LOG_LEVEL', 'info'); // @todo store in .env
+$logger = new logger('logs/main.log', LOG_LEVEL);
 
 define('APP_ROOT', realpath(__DIR__ . '/..'));
 define('WORKERS_COUNT', 2);
