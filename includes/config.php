@@ -1,6 +1,7 @@
 <?php
 date_default_timezone_set("UTC");
 
+// @todo move sensitive data to environment variables
 $servername = "localhost";
 $username = "bettinga";
 $password = "Newcar888!!";
