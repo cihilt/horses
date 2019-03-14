@@ -1,7 +1,8 @@
 <?php
 date_default_timezone_set('Europe/London');
 class RacingZoneScraper {
-    protected $_base_url = "http://www.racingzone.com.au/form-guide/";
+    protected $base_url = "https://www.racingzone.com.au";
+    protected $_base_url = "/form-guide/";
     protected $_mysqli;
     protected $_stmt_data;
     protected $_stmt_meetings;
@@ -17,15 +18,15 @@ class RacingZoneScraper {
         if (!$this->_mysqli) {
             $this->mysql_connect();
         }
-        $this->_cookiefile = dirname(__FILE__) . 'cookies.txt';
+        $this->_cookiefile = dirname(__FILE__) . '/cookies.txt';
         if (file_exists($this->_cookiefile)) {
             unlink($this->_cookiefile);
         }
         $this->init();
+        $this->_base_url = $this->base_url . $this->_base_url;
     }
     private function mysql_connect() {
-        include('constant.php');
-        $mysqli = new mysqli($servername, $username, $password, $dbname);
+        include('includes/config.php');
         if ($mysqli->connect_errno) {
             echo "Failed to connect to MySQL: (" . $mysqli->connect_errno . ") " . $mysqli->connect_error;
             exit;
@@ -34,28 +35,28 @@ class RacingZoneScraper {
         $this->_mysqli = $mysqli;
     }
     private function init() {
-        $sql = "INSERT INTO `data` ( `race_date`, `race_name`, `horse_id`, `name`, `track`, `track_name`, `length`, `condition`, `distance`, `original_distance`, `pos`, `weight`, `prize`, `time`, `sectional`, `time2`, `handicap` ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )  ON DUPLICATE KEY UPDATE `time2`=`time2`;";
+        $sql = "INSERT INTO `tbl_hist_results` (`race_id`, `race_date`, `race_distance`, `horse_id`, `h_num`, `horse_position`, `horse_weight`, `horse_fixed_odds`, `horse_h2h`, `prize`, `race_time`, `length`, `sectional`, `handicap`, `rating`, `rank`) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
         $stmt_data;
         if (!($stmt_data = $this->_mysqli->prepare($sql))) {
             echo "Prepare failed: (" . $this->_mysqli->errno . ") " . $this->_mysqli->error;
         }
         $this->_stmt_data = $stmt_data;
 
-        $sql = "INSERT INTO `meetings` ( `meeting_date`, `meeting_name`, `meeting_url` ) VALUES ( ?, ?, ? );";
+        $sql = "INSERT INTO `tbl_meetings` ( `meeting_date`, `meeting_name`, `meeting_url`, `added_on` ) VALUES ( ?, ?, ?, ?);";
         $stmt_meetings;
         if (!($stmt_meetings = $this->_mysqli->prepare($sql))) {
             echo "Prepare failed: (" . $this->_mysqli->errno . ") " . $this->_mysqli->error;
         }
         $this->_stmt_meetings = $stmt_meetings;
 
-        $sql = "INSERT INTO `races` ( `meeting_id`, `race_number`, `race_schedule_time`, `race_title`, `race_distance` ) VALUES ( ?, ?, ?, ?, ? );";
+        $sql = "INSERT INTO `tbl_races` (`old_race_id`, `meeting_id`, `race_order`, `race_schedule_time`, `race_title`, `race_slug`, `race_distance`, `round_distance`, `race_url`, `rank_status`, `sec_status`) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? );";
         $stmt_races;
         if (!($stmt_races = $this->_mysqli->prepare($sql))) {
             echo "Prepare failed: (" . $this->_mysqli->errno . ") " . $this->_mysqli->error;
         }
         $this->_stmt_races = $stmt_races;
 
-        $sql = "INSERT INTO `horses` ( `race_id`, `horse_number`, `horse_name`, `horse_weight`, `horse_fixed_odds`, `horse_h2h`, `horse_latest_results` ) VALUES ( ?, ?, ?, ?, ?, ?, ? );";
+        $sql = "INSERT INTO `tbl_horses` (`horse_name`, `horse_slug`, `horse_latest_results`, `added_on` ) VALUES ( ?, ?, ?, ? );";
         $stmt_horses;
 
         if (!($stmt_horses = $this->_mysqli->prepare($sql))) {
@@ -89,7 +90,7 @@ class RacingZoneScraper {
             $meeting["date"] = $date;
             $meeting["place"] = $xpath->evaluate('string(./td[1]/a/text())', $row);
             $meeting["url"] = $xpath->evaluate('string(./td[1]/a/@href)', $row);
-            $meeting["url"] = "http://www.racingzone.com.au" . $meeting["url"];
+            $meeting["url"] = $this->base_url . $meeting["url"];
             array_push($race_meetings, $meeting);
         }
         return $race_meetings;
@@ -107,7 +108,7 @@ class RacingZoneScraper {
             $race["number"] = $xpath->evaluate('string(./td[1]/text())', $row);
             $race["schedule_time"] = $xpath->evaluate('string(./td[2]/text())', $row);
             $race["url"] = $xpath->evaluate('string(./td[3]/a/@href)', $row);
-            $race["url"] = "http://www.racingzone.com.au" . $race["url"];
+            $race["url"] = $this->base_url . $race["url"];
             $race["distance"] = $xpath->evaluate('string(./td[6]/text())', $row);
             $race["distance"] = (int) str_replace('m', '', $race["distance"]);
             array_push($races, $race);
@@ -130,6 +131,10 @@ class RacingZoneScraper {
             $horse["horse_fixed_odds"] = $xpath->evaluate('string(./td[11]/span/a/text())', $row);
             //$horse["horse_h2h"] = $xpath->evaluate('string(./td[4]/span[contains(@class, "h2h")]/text())', $row);
 
+            $horse["horse_win"] = $xpath->evaluate('string(./td[8]/span/text())', $row);
+            $horse["horse_plc"] = $xpath->evaluate('string(./td[9]/span/text())', $row);
+            $horse["horse_avg"] = $xpath->evaluate('string(./td[10]/span/text())', $row);
+
             $horse["horse_latest_results"] = $xpath->evaluate('string(./td[3]/@title)', $row);
             $horse["horse_latest_results"] = str_replace(array('<b>', '</b>'), '', $horse["horse_latest_results"]);
 
@@ -139,7 +144,6 @@ class RacingZoneScraper {
             }
 
             if ( preg_match( '/\$\("span.horse' . $horse["id"] . '"\)\.text\("([^"]*)"\)/', $content, $matches ) ) {
-
                 $horse["horse_h2h"] = $matches[1];
             }
             $horse["field_id"] = $xpath->evaluate('string(./@rel)', $row);
@@ -175,10 +179,10 @@ class RacingZoneScraper {
         if (preg_match('/\/(\d+)-[^\/]+\/\s*$/', $race["url"], $matches)) {
             $race_site_id = $matches[1];
         }
-        $content = $this->CallPage("http://www.racingzone.com.au/formguide-detail.php?race_id=" . $race_site_id, null, null, $this->_cookiefile);
+        $content = $this->CallPage($this->base_url . "/formguide-detail.php?race_id=" . $race_site_id, null, null, $this->_cookiefile);
         $horses = $this->parse_horses($content, $race, $race_id);
         foreach ($horses as $horse) {
-            $this->process_horse($horse, $race_site_id);
+			$this->process_horse($horse, $race_site_id);
         }
     }
     private function process_horse($horse, $race_site_id) {
@@ -186,10 +190,10 @@ class RacingZoneScraper {
 
         $this->save_horse($horse);
 
-        $content = $this->CallPage("http://www.racingzone.com.au/past-form-from-results2.php?horse=" . $horse["id"] . "&race_id=" . $race_site_id . "&field_id=" . $horse["field_id"], null, null, $this->_cookiefile);
+        $content = $this->CallPage($this->base_url . "/past-form-from-results2.php?horse=" . $horse["id"] . "&race_id=" . $race_site_id . "&field_id=" . $horse["field_id"], null, null, $this->_cookiefile);
         $records = $this->parse_horse($content, $horse);
         foreach ($records as $record) {
-            $this->save_record($record);
+            $this->save_record($record, $race_site_id);
         }
     }
     private function parse_horse($content, $meta) {
@@ -310,7 +314,7 @@ class RacingZoneScraper {
     	return 0;
     }
 
-    private function save_record($record) {
+    private function save_record($record, $todo_race_id) {
 
     	// Modify time2 to suit our needs
 	    $record['original_distance'] = $record['distance'];
@@ -330,9 +334,7 @@ class RacingZoneScraper {
 
         $thousands =  intval($initialDistance/1000);
 
-
         $thousandsModule = $initialDistance%1000;
-
 
         $hundrends = intval($thousandsModule/100);
         $tens = $initialDistance/10;
@@ -346,29 +348,40 @@ class RacingZoneScraper {
             $record["distance"] = ($thousands * 1000) + ($hundrends * 100);
         }
 
-
-        //$record["original_distance"] = $record["distance"];
-
-
-//	    echo '----'.$place.'---';
-//	    if ($record['time'] != $record['time2'])
-//	    {
-//	    	print_r($record);die();
-//	    }
-
         $record["handicap"] = 0.00;
 
-        $this->_stmt_data->bind_param("sssssssssssssssss", $record["race_date"], $record["race_name"], $record["horse_id"], $record["name"], $record["track"],$record["track_name"],  $record["mrg"], $record["condition"], $record["distance"], $record["original_distance"], $record["pos"], $record["weight"], $record["prize"], $record["time"], $record["sectional"], $record["time2"], $record["handicap"]);
+		$raced = explode('/', $record["race_date"]);
+		$raceD = $raced[0];
+		$raceM = $raced[1];
+		$raceY = '20'.$raced[2];
+		$racefulldate = $raceY.'-'.$raceM.'-'.$raceD;
+		$rankorrat = '0.00';
+
+		$raceidnow = $this->race_details_now($todo_race_id);
+
+		$horse_id_now = $this->horse_details_now($record["name"]);
+		$fixed_odds = $this->temp_rcdata($horse_id_now, $raceidnow, 'horse_fxodds');
+		$horse_h2h = $this->temp_rcdata($horse_id_now, $raceidnow, 'horse_h2h');
+		$horse_numb = $this->temp_rcdata($horse_id_now, $raceidnow, 'horse_num');
+
+        $this->_stmt_data->bind_param("ssssssssssssssss", $raceidnow, $racefulldate, $record["distance"], $horse_id_now, $horse_numb, $record["pos"], $record["weight"], $fixed_odds, $horse_h2h, $record["prize"], $record["time"], $record["mrg"], $record["sectional"], $record["handicap"], $rankorrat, $rankorrat);
+
+		// $record["race_name"], $record["horse_id"], $record["name"], $record["track"],$record["track_name"],  , $record["condition"], $record["distance"], $record["original_distance"], ,, , ,  $record["time2"], );
+
         if (!$this->_stmt_data->execute()) {
             $msg = "[" . date("Y-m-d H:i:s") . "] Insert failed: " . $this->_stmt_data->error;
             $this->msg['danger'][] = $msg;
             $myfile = file_put_contents('logs.txt', $msg . PHP_EOL, FILE_APPEND | LOCK_EX);
+			echo $msg . '<br />Horse id: ' . $horse_id_now;
+			echo '<br><br>Track: ' . $record["track_name"] . ' date: ' . $record["race_date"];
+			exit();
         }
     }
 
     private function save_meeting($meeting) {
+		$today_date = date("Y-m-d H:i:s");
         $meeting_id = 0;
-        $stmt = $this->_mysqli->prepare("SELECT meeting_id FROM meetings WHERE meeting_date = ? AND meeting_name = ? LIMIT 1");
+        $stmt = $this->_mysqli->prepare("SELECT meeting_id FROM tbl_meetings WHERE meeting_date = ? AND meeting_name = ? LIMIT 1");
         $stmt->bind_param("ss", $meeting["date"], $meeting["place"]);
         if ($stmt->execute()) {
             $stmt->bind_result($meeting_id);
@@ -385,7 +398,7 @@ class RacingZoneScraper {
             return $meeting_id;
         }
 
-        $this->_stmt_meetings->bind_param("sss", $meeting["date"], $meeting["place"], $meeting["url"]);
+        $this->_stmt_meetings->bind_param("ssss", $meeting["date"], $meeting["place"], $meeting["url"], $today_date);
         if (!$this->_stmt_meetings->execute()) {
             $msg = "[" . date("Y-m-d H:i:s") . "] Insert failed: " . $this->_stmt_meetings->error;
             $this->msg['danger'][] = $msg;
@@ -397,7 +410,8 @@ class RacingZoneScraper {
 
     private function save_race($race) {
         $race_id = 0;
-        $stmt = $this->_mysqli->prepare("SELECT race_id FROM races WHERE meeting_id = ? AND race_number = ? AND race_schedule_time = ? AND race_title = ? AND race_distance = ? LIMIT 1");
+		$rank_status = 0;
+        $stmt = $this->_mysqli->prepare("SELECT race_id FROM tbl_races WHERE meeting_id = ? AND race_order = ? AND race_schedule_time = ? AND race_title = ? AND race_distance = ? LIMIT 1");
         $stmt->bind_param("sssss", $race["meeting_id"], $race["number"], $race["schedule_time"], $race["title"], $race["distance"]);
         if ($stmt->execute()) {
             $stmt->bind_result($race_id);
@@ -414,7 +428,38 @@ class RacingZoneScraper {
             return $race_id;
         }
 
-        $this->_stmt_races->bind_param("sssss", $race["meeting_id"], $race["number"], $race["schedule_time"], $race["title"], $race["distance"]);
+		$raceslug = preg_replace('/[^A-Za-z0-9\-]/', '', strtolower($race["title"]));
+
+		$url = str_replace("http://www.racingzone.com.au/", "", $race['url']);
+		$url = str_replace($this->base_url, "", $race['url']);
+		$end = explode('/', $url);
+		$cont = count($end) - 2;
+		$last_url = $end[$cont];
+		$oldidnum = explode('-', $last_url);
+
+
+		$distance = $race["distance"];
+		if ($distance % 10 < 5)
+		{
+			$distance -= $distance % 10;
+		}
+		else
+		{
+			$distance += (10 - ($distance % 10));
+		}
+
+		if ($distance % 100 < 50)
+		{
+			$round_difference = $distance % 100;
+			$round_distance = $distance - $round_difference;
+		}
+		else
+		{
+			$round_difference = (100 - ($distance % 100));
+			$round_distance = $distance + $round_difference;
+		}
+
+        $this->_stmt_races->bind_param("sssssssssss", $oldidnum[0], $race["meeting_id"], $race["number"], $race["schedule_time"], $race["title"], $raceslug, $distance, $round_distance, $race['url'], $rank_status, $rank_status);
         if (!$this->_stmt_races->execute()) {
             $msg = "[" . date("Y-m-d H:i:s") . "] Insert failed: " . $this->_stmt_races->error;
             $this->msg['danger'][] = $msg;
@@ -426,8 +471,10 @@ class RacingZoneScraper {
 
     private function save_horse($horse) {
         $horse_id = 0;
-        $stmt = $this->_mysqli->prepare("SELECT horse_id FROM horses WHERE race_id = ? AND horse_number = ? AND horse_name = ? LIMIT 1");
-        $stmt->bind_param("sss", $horse["race_id"], $horse["horse_number"], $horse["horse_name"]);
+		$hslug = preg_replace('/[^A-Za-z0-9\-]/', '', strtolower($horse["horse_name"]));
+		$today_date = date("Y-m-d H:i:s");
+        $stmt = $this->_mysqli->prepare("SELECT horse_id FROM tbl_horses WHERE horse_slug = ? LIMIT 1");
+        $stmt->bind_param("s", $hslug);
         if ($stmt->execute()) {
             $stmt->bind_result($horse_id);
             while ($stmt->fetch()) {
@@ -439,18 +486,56 @@ class RacingZoneScraper {
             $this->msg['danger'][] = $msg;
             $myfile = file_put_contents('logs.txt', $msg . PHP_EOL, FILE_APPEND | LOCK_EX);
         }
+
         if ($horse_id) {
-            return $horse_id;
+			$action_now = 'updated';
+
+			//adding temp races
+			$stathra = $this->_mysqli->prepare("INSERT INTO `tbl_temp_hraces` (`race_id`, `horse_id`, `horse_num`, `horse_fxodds`, `horse_h2h`, `horse_weight`, `horse_win`, `horse_plc`, `horse_avg`) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ? );");
+			$stathra->bind_param("sssssssss", $horse["race_id"], $horse_id, $horse["horse_number"], $horse["horse_fixed_odds"], $horse["horse_h2h"], $horse["horse_weight"], $horse["horse_win"], $horse["horse_plc"], $horse["horse_avg"]);
+			$stathra->execute();
+			$stathra->close();
+			// end temp races
         }
 
-        $this->_stmt_horses->bind_param("sssssss", $horse["race_id"], $horse["horse_number"], $horse["horse_name"], $horse["horse_weight"], $horse["horse_fixed_odds"], $horse["horse_h2h"], $horse["horse_latest_results"]);
+        $this->_stmt_horses->bind_param("ssss", $horse["horse_name"], $hslug, $horse["horse_latest_results"], $today_date);
         if (!$this->_stmt_horses->execute()) {
             $msg = "[" . date("Y-m-d H:i:s") . "] Insert failed: " . $this->_stmt_horses->error;
             $this->msg['danger'][] = $msg;
             $myfile = file_put_contents('logs.txt', $msg . PHP_EOL, FILE_APPEND | LOCK_EX);
         }
 
-        return $this->_mysqli->insert_id;
+		if($this->_mysqli->insert_id) {
+			$horse_id_n = $this->_mysqli->insert_id;
+			$action_now = 'added';
+			if(empty($horse["horse_fixed_odds"])) {
+				$horse_fixed_odds = '0';
+			}
+			else {
+				$horse_fixed_odds = $horse["horse_fixed_odds"];
+			}
+
+			if(empty($horse["horse_h2h"])) {
+				$horse_h2hnow = '0';
+			}
+			else {
+				$horse_h2hnow = $horse["horse_h2h"];
+			}
+
+			if(empty($horse["horse_number"])) {
+				$horse_cnumber = '0';
+			}
+			else {
+				$horse_cnumber = $horse["horse_number"];
+			}
+
+			//adding temp races
+			$stathra = $this->_mysqli->prepare("INSERT INTO `tbl_temp_hraces` (`race_id`, `horse_id`, `horse_num`, `horse_fxodds`, `horse_h2h`, `horse_weight`, `horse_win`, `horse_plc`, `horse_avg` ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ? );");
+			$stathra->bind_param("sssssssss", $horse["race_id"], $horse_id_n, $horse["horse_number"], $horse_fixed_odds, $horse_h2hnow, $horse["horse_weight"], $horse["horse_win"], $horse["horse_plc"], $horse["horse_avg"]);
+			$stathra->execute();
+			$stathra->close();
+			// end temp races
+		}
     }
 
 
@@ -557,6 +642,60 @@ class RacingZoneScraper {
         //unset($ch);
         return $strData;
     }
+
+	private function race_details_now($raceoldnum) {
+		$race_id = 0;
+		$stmt = $this->_mysqli->prepare("SELECT race_id FROM `tbl_races` WHERE old_race_id = ?");
+        $stmt->bind_param("s", $raceoldnum);
+
+		if ($stmt->execute()) {
+            $stmt->bind_result($race_id);
+            while ($stmt->fetch()) {
+                $race_id = $race_id;
+            }
+            $stmt->close();
+        }
+		if($race_id) {
+			return $race_id;
+		}
+	}
+
+	private function horse_details_now($horsename) {
+		$horse_id = 0;
+		$horseslug = preg_replace('/[^A-Za-z0-9\-]/', '', strtolower($horsename));
+		$stmt = $this->_mysqli->prepare("SELECT horse_id FROM `tbl_horses` WHERE horse_slug = ?");
+        $stmt->bind_param("s", $horseslug);
+
+		if ($stmt->execute()) {
+            $stmt->bind_result($horse_id);
+            while ($stmt->fetch()) {
+                $horse_id = $horse_id;
+            }
+            $stmt->close();
+        }
+		if($horse_id) {
+			return $horse_id;
+		}
+	}
+
+	private function temp_rcdata($horseid, $raceid, $reqvalue) {
+		$requ_val = '';
+		$stmt = $this->_mysqli->prepare("SELECT $reqvalue FROM `tbl_temp_hraces` WHERE horse_id ='$horseid' AND race_id = '$raceid'");
+
+		if ($stmt->execute()) {
+            $stmt->bind_result($requ_val);
+            while ($stmt->fetch()) {
+                $requ_val = $requ_val;
+            }
+            $stmt->close();
+        }
+		if($requ_val) {
+			return $requ_val;
+		}
+	}
+
+
+
 }
 
 
@@ -576,17 +715,17 @@ $scraper = new RacingZoneScraper();
 if (isset($_POST['start_date']) && !empty($_POST['start_date']) && isset($_POST['end_date']) && !empty($_POST['end_date'])) {
 
     $scraper = new RacingZoneScraper();
-    
-    
+
+
     $start_date = $_POST['start_date'];
-    
+
     $end_date = $_POST['end_date'];
-    
-    
+
+
     $scraper->get_data($start_date, $end_date);
-    
-    $scraper->msg['success'][] = "Done!";
-    
+
+    echo "Done!";
+
 }
 
 ?>
@@ -645,7 +784,7 @@ $( function() {
       <div class="alert alert-success" role="alert">
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
           <span aria-hidden="true">&times;</span>
-        </button>        
+        </button>
         <?php echo $message; ?>
       </div>
       <?php endforeach; ?>
@@ -655,7 +794,7 @@ $( function() {
       <div class="alert alert-info" role="alert">
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
           <span aria-hidden="true">&times;</span>
-        </button>        
+        </button>
         <?php echo $message; ?>
       </div>
       <?php endforeach; ?>

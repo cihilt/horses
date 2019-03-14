@@ -1,10 +1,8 @@
 <?php
-
+date_default_timezone_set('Europe/London');
 $str_date = strtotime('now');
 
-
 include('results_core.php');
-
 
 if (isset($msg['success']) && !empty($msg['success'])) :
     foreach($msg['success'] as $message) :

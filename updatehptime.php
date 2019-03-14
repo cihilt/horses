@@ -1,399 +1,553 @@
 <?php
-
-include('constant.php');
-
+include('includes/config.php');
+include('includes/functions.php');
+include('includes/formula_functions.php');
 // Check connection
-
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+if ($mysqli->connect_error) {
+    die("Connection failed: " . $mysqli->connect_error);
 }
+//get the timer and secpoint
+$sql_formulas = "SELECT `secpoint`,`timer`,`position_percentage` 
+                 FROM `tbl_formulas` WHERE id=1";
+$result_formulas = $mysqli->query($sql_formulas);
+$res = mysqli_fetch_all($result_formulas, MYSQLI_ASSOC);
 
-// first update 
+$secpoint = $res[0]['secpoint'];
+$timer = $res[0]['timer'];
+$position_percentage = $res[0]['position_percentage'];
 
-$sql = "UPDATE `data` SET `sectional` = 0 WHERE `sectional`='-'";                //Resetting Rating 
-$result = $conn->query($sql);
-
-$sql = "SELECT * FROM horses LEFT JOIN (SELECT * , MIN(data.time) minimumtime,MIN(data.time2) minimumtime2 FROM data GROUP BY horse_id) a ON horses.horse_name = a.name";
-$result = $conn->query($sql);
-
-if ($result->num_rows > 0) {
-    // output data of each row
-    while ($row = $result->fetch_assoc()) {
-
-        $distance = round($row["original_distance"] / 100);
-        $distance = $distance * 100;
-        $newhandicap = newvalue($row["length"], $row["original_distance"], $distance, $row["pos"], number_format($row["minimumtime"], 2));
-        $newhandi = number_format($newhandicap, 3);
-
-        $rating = 0;
-        if (strlen($row["horse_fixed_odds"]) > 0) {
-            $rating = rating_system($newhandicap, $row["sectional"], $row["weight"], $row["horse_weight"]);
-            $rating = number_format($rating, 0);
-        } else {
-            $rating = 0;
-        }
-        $id = $row['id'];
-        $updatehptime = "UPDATE `data` SET `handicap`=$newhandi WHERE id = $id;  ";
-        echo $updatehptime . "<br>";
-        $result_first = $conn->query($updatehptime);
-    }
-    echo "<br><br><br>";
-    echo "--------------------------------------------------------------------------------------------";
+if ( ! empty($_GET['limit'])) {
+    $limit = $_GET['limit'];
 } else {
-    echo "Nothing updated.  0 results.  Try again";
+    $limit = 0;
 }
 
-//Second Update
+$race_id_var_get = isset($_GET['race_id']) && $_GET['race_id']
+    ? $_GET['race_id'] : 0;
 
-$sql = "Update `data` SET rank = NULL";                                           //Resetting Rank
-$result = $conn->query($sql);
+if (empty($_GET['do'])) {
+    echo '<center><h2>You need an action</h2><br />';
+    echo 'This page allows you to either reset and apply the formulas. We need this page because after retreiving the horses, we need to apply our algorithm. <br />
+Start by selecting the raceID. <br />If you want to reset all, beware that this can take up to 1 hour, this can be done by going to the console version<br /><br />';
 
-$numArray = array();
-$numArray[0] = 0;
-
-$sql = "SELECT COUNT(horses.race_id) as num, horses.race_id FROM horses LEFT JOIN races ON races.race_id = horses.race_id GROUP BY horses.race_id ORDER BY horses.race_id";
-$result = $conn->query($sql);
-
-if ($result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
-        $numArray[intval($row['race_id'])] = $row['num'];
+    $race_id_var = '';
+    $race_id_var_int = isset($_POST['race_id']) && $_POST['race_id']
+        ? $_POST['race_id'] : 0;
+    if ($race_id_var_int) {
+        $race_id_var = '&race_id='.$_POST['race_id'];
     }
-}
-
-$avgArray = array();
-$rank_avg_dataArray_id = array();
-$rank_avg_dataArray = array();
-
-$sql = "SELECT * FROM `rank_avg_data` WHERE distance IS NOT NULL";// ) a ON a.race_id = minihand.race_id AND a.distance = minihand.distance
-$result = $conn->query($sql);
-
-if ($result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
-        $avgArray[] = [$row['race_id'], $row['distance'], $row['handis']];
-        $rank_avg_dataArray_id[] = $row['handis'];
-        $rank_avg_dataArray[] = array($row['race_id'], $row['distance']);
-    }
-}
-
-$sql = "SELECT *  FROM `minihand`";//LEFT JOIN (SELECT * FROM `rank_avg_data` WHERE distance IS NOT NULL ) a ON a.race_id = minihand.race_id AND a.distance = minihand.distance
-$result = $conn->query($sql);
-
-$rank_avg = 0;
-$result_second = array();
-
-$result = $conn->query($sql);
-if ($result->num_rows > 0) {
-    // output data of each row
-    while ($row = $result->fetch_assoc()) {
-        
-        foreach ($avgArray as $item){
-           if( $item[0] == $row['race_id'] && $item[1] == $row['distance'])
-           $result_second[] = [$row['race_id'],  $row['minihandi'], $row['distance'], $row['horse_name'], $item[2]];
+    $sql_races
+        = "SELECT `race_id` FROM `tbl_races` WHERE 1=1 ORDER by `race_id` ASC";
+    $result_races = $mysqli->query($sql_races);
+    echo '<form method="post" id="race_form">';
+    echo '<select name="race_id" onchange="document.getElementById(\'race_form\').submit();">';
+    echo '<option value="">Select race_id</option>';
+    if ($result_races->num_rows > 0) {
+        while ($result_race = $result_races->fetch_object()) {
+            echo '<option value="'.$result_race->race_id.'"'.($race_id_var_int
+                && $race_id_var_int == $result_race->race_id ? ' selected' : '')
+                .'>'.$result_race->race_id.'</option>';
         }
     }
-    
-    foreach ($result_second as $row){
 
-        $countofhorses = intval($numArray[($row[0]-1)]);
-        //echo $countofhorses;
-        $handicap = $row[1];
-        $distance = $row[2];
-        $horsename = str_replace("'", "\'", $row[3]);
-        $arr = explode(",", $row[4]);
-        $cnt = count($arr);
-        $per = ($cnt / $countofhorses) * 100;
+//    echo '<a href="" style="color: black;">Select RaceID</a>';
+    echo '</select>';
+    echo '<a href="" style="color: black;">Select RaceID</a>';
+    echo '</br>';
 
-        if ($per > 40) {
-            $rank_avg = rank_avg($row[1], $arr, 0);
-            $rank_avg = number_format($rank_avg, 2, '.', '');
-            $updaterankavg = "UPDATE data SET rank = ".$rank_avg." WHERE  distance= '".$distance."' AND name= '".$horsename."';";
-            $result4 = $conn->query($updaterankavg);
-            echo $updaterankavg . "<br>";
-        }
+    echo '<h3>Default Algorithm</h3>';
+    require_once 'includes/default_algorithm.php';
+
+    echo '
+<br />Reset Individual formulas<br />
+<a href="./updatehptime.php?limit=50000&do=resethandicap'.$race_id_var.'">Reset Handicap</a> | 
+<a href="./updatehptime.php?limit=50000&do=resetsectional'.$race_id_var.'">Reset Sectional</a> |  
+<a href="./updatehptime.php?limit=50000&do=resetrank'.$race_id_var.'">Reset Rank</a> | 
+<a href="./updatehptime.php?limit=50000&do=resetrating'.$race_id_var.'">Reset Rating</a><br /> 
+
+<br />Apply Individual formulas<br />
+<a href="./updatehptime.php?limit=50000&do=sectional'.$race_id_var.'">Sectional</a> | 
+<a href="./updatehptime.php?limit=50000&do=handicap'.$race_id_var.'">Handicap</a> | 
+<a href="./updatehptime.php?limit=50000&do=rank'.$race_id_var.'">Rank</a> | 
+<a href="./updatehptime.php?limit=50000&do=sectionalavg'.$race_id_var.'">Sectional Average</a> | 
+<a href="./updatehptime.php?limit=50000&do=datarating'.$race_id_var.'">Rating</a><br />
+
+<br />Setup the Rankings in one go<br />
+<a href="./updatehptime.php?limit=50000&do=ranksectionalavgrating'.$race_id_var.'">Rank + Sectional Average + Rating</a></center>
+';
+
+    exit();
+
+} else {
+    $action = $_GET['do'];
+
+    if ($action == 'resetsectional') {
+        $sqlseq
+            = "UPDATE `tbl_hist_results` SET `sectional`='0' WHERE `sectional`='-'";
+        $resultseq = $mysqli->query($sqlseq);
+        echo 'Sectional Resetted. <a href="./updatehptime.php">Click Here</a> to go back';
     }
-    echo "<br><br><br>";
-    echo "----------------------------------------------------------------------------------------------";
-}
-
-// third update
-
-$sql = "Update `data` SET rating = NULL";                                          //Resetting Rating
-$result = $conn->query($sql);
-
-/*
-$rank_avg_dataArray_id = array();
-$rank_avg_dataArray = array();
-$sql_rank_avg_data = "SELECT race_id, distance, handis  FROM rank_avg_data";
-$result_rank_avg_data = $conn->query($sql_rank_avg_data);
-if ($result_rank_avg_data->num_rows > 0) {
-    while($row = $result_rank_avg_data->fetch_assoc()) {
-        $rank_avg_dataArray_id[] = $row['handis'];
-        $rank_avg_dataArray[] = array($row['race_id'], $row['distance']);
-    }            
-}*/
-//print_r($rank_avg_dataArray);
-
-$rankavgArray = array();
-$rankavgArray_id = array();
-$sql_rankavg = "SELECT name, avgrank FROM rankavg";
-$result_rankavg = $conn->query($sql_rankavg);
-if ($result_rankavg->num_rows > 0) {
-    while($row = $result_rankavg->fetch_assoc()) {
-        $rankavgArray_id[] = $row['name'];
-        $rankavgArray[] = $row['avgrank'];
-    }            
-}
-//print_r($rankavgArray);
-
-$sec_avg_data = array();
-$sec_avg_data_id = array();
-$sql_sec_avg_data = "SELECT * FROM `sec_avg_data`";
-$result_sec_avg_data = $conn->query($sql_sec_avg_data);
-if ($result_sec_avg_data->num_rows > 0) {
-    while($row = $result_sec_avg_data->fetch_assoc()) {
-        $sec_avg_data_id[] = $row['sectionals'];
-        $sec_avg_data[] = array($row['race_id'], $row['distance']);
-    }            
-}
-//print_r($sec_avg_data);
-
-$sql5 = "SELECT * FROM `maxsectional`" ;
-$result5 = $conn->query($sql5);
-
-$updaterankavg1 = '';
-
-if ($result5->num_rows > 0) {
-    // output data of each row
-    while ($row = $result5->fetch_assoc()) {
-
-        $distance = $row['distance'];
-        $countofhorses = intval($numArray[$row['race_id']]);
-        $handicap = $row['maxsectional'];
-        
-        if(in_array(array($row['race_id'], $distance),$rank_avg_dataArray)){
-        	$handis = $rank_avg_dataArray_id[ array_search( array($row['race_id'], $distance), $rank_avg_dataArray ) ];
-        }else {$handis = '';}
-        
-        $arr2 = explode(",", $handis);
-        $cnt1 = count($arr2); //Count of Handis
-        $per1 = ($cnt1 / $countofhorses) * 100;
-        $horsename = str_replace("'", "\'", $row['horse_name']);
-
-        //Getting % of sectionals
-        
-        $sectionals = '';
-        if(in_array(array($row['race_id'], $distance), $sec_avg_data)){
-        	$sectionals = $sec_avg_data_id[ array_search( array($row['race_id'], $distance), $sec_avg_data ) ];
-        }else {$sectionals = '';}  
-        
-        $arr = explode(",", $sectionals);
-        $cnt = count($arr);
-        $per = ($cnt / $countofhorses) * 100;
-        //Checking rank value 
-        if ($per1 > 40) {
-            
-            if(in_array($row['horse_name'], $rankavgArray_id)){
-            	$rank = $rankavgArray[ array_search( $row['horse_name'], $rankavgArray_id ) ];
-            }else {$rank = 0;}
-            
+    if ($action == 'sectional') {
+        if ($limit == 0) {
+            $getsec
+                = $mysqli->query("SELECT `hist_id`, `sectional` FROM `tbl_hist_results` WHERE `sectional`!='0' AND `avgsec`=''");
         } else {
-            $rank = 0;
+            $getsec
+                = $mysqli->query("SELECT `hist_id`, `sectional` FROM `tbl_hist_results` WHERE `sectional`!='0' AND `avgsec`='' LIMIT $limit");
         }
-        
-        //Checking sectional value 
-        if ($per > 40) {
-            $sectional_avg = sectional_avg($row["maxsectional"], $arr, 0);
+        if ($getsec->num_rows > 0) {
+            while ($getsc = $getsec->fetch_object()) {
+                $sectional = explode("/", $getsc->sectional);
+                if ($sectional[0] < 651) {
+                    $avgvalue = $sectional[1];
+                    $sqlseq
+                        = $mysqli->query("UPDATE `tbl_hist_results` SET `avgsec`='$avgvalue' WHERE `hist_id`='$getsc->hist_id'");
+                }
+            }
+            echo 'Sectional Values Done. <a href="./updatehptime.php">Click Here</a> to go back';
         } else {
-            $sectional_avg = 0;
+            echo '0 Results. <a href="./updatehptime.php">Click Here</a> to go back';
         }
-        $rating = rating_system_new($rank, $sectional_avg, $row["weight"], $row["horse_weight"]);
-        $updaterankavg1 = "UPDATE `data` SET `rating` = $rating WHERE `distance`= '$distance' AND `name`= '$horsename';  ";
-        echo $updaterankavg1 . "<br>";
-        $result4 = $conn->query($updaterankavg1);
-    }
-}
-
-function newvalue($length, $distance, $orgdistance, $pos, $time) {
-
-    //Getting the postion of the horse
-    $pos = explode('/', $pos);
-    $position = intval($pos[0]);
-    $modifier = MODIFIER;
-    $remainder = get_remainder($distance);
-
-    if ($position == 1) {
-
-        if ($distance < $orgdistance) {
-
-            $newtime = win_rounded_up($time, $length, $modifier, $remainder);
+    } else {
+        if ($action == 'resethandicap') {
+            $sqlhand = "";
+            if ($limit == 0) {
+                $sqlhand
+                    = "UPDATE `tbl_hist_results` SET `handicap`='0' WHERE `handicap`!='0'";
+            } else {
+                $sqlhand
+                    = "UPDATE `tbl_hist_results` SET `handicap`='0' WHERE `handicap`!='0' ORDER BY hist_id ASC LIMIT $limit";
+            }
+            $resulthand = $mysqli->query($sqlhand);
+            echo 'Handicap Resetted for '.$limit
+                .'. <a href="./updatehptime.php">Click Here</a> to go back';
         } else {
-            $newtime = win_rounded_down($time, $length, $modifier, $remainder);
+            if ($action == 'handicap') {
+                if ($limit == "0") {
+                    $sqlnow
+                        = "SELECT * FROM `tbl_hist_results` WHERE `handicap`='0.00'";
+                } else {
+                    $sqlnow
+                        = "SELECT * FROM `tbl_hist_results` WHERE `handicap`='0.00' LIMIT $limit";
+                }
+                $hadnires = $mysqli->query($sqlnow);
+                if ($hadnires->num_rows > 0) {
+                    // output data of each row
+                    while ($handi = $hadnires->fetch_object()) {
+                        $racedet = race_details($handi->race_id);
+                        $distance = round($racedet->race_distance / 100);
+                        $distance = $distance * 100;
+                        $newhandicap = newvalue($handi->length,
+                            $racedet->race_distance, $distance,
+                            $handi->horse_position,
+                            number_format($handi->race_time, 2));
+                        $newhandi = number_format($newhandicap, 3);
+
+                        $id = $handi->hist_id;
+                        // $newhandicap = newvalue($row["length"], $row["original_distance"], $row["distance"], $row["pos"], number_format($row["minimumtime"],2));
+                        $updatehptime
+                            = "UPDATE `tbl_hist_results` SET `handicap`=$newhandi WHERE hist_id = $id";
+                        echo $updatehptime."<br>";
+                        echo "-------------------"."<br>";
+                        $result2 = $mysqli->query($updatehptime);
+                    }
+                    echo 'Your Action has been completed. <a href="./updatehptime.php">Click Here</a> to go back';
+                } else {
+                    echo '0 results. <a href="./updatehptime.php">Click Here</a> to go back';
+                }
+            } else {
+                if ($action == 'resetrank') {
+                    //Query to update the rank avg
+                    if ($limit == "0") {
+                        $sql7
+                            = "Update `tbl_hist_results` SET `rank`='0.00' WHERE `rank`!='0.00'"; //Resetting Rank
+                    } else {
+                        $sql7
+                            = "Update `tbl_hist_results` SET `rank`='0.00' WHERE `rank`!='0.00' LIMIT $limit";
+                    }
+                    $mysqli->query("UPDATE `tbl_races` SET `rank_status`='0' WHERE `rank_status`!='0'");
+                    $result7 = $mysqli->query($sql7);
+                    echo 'Rank Resetted. <a href="./updatehptime.php">Click Here</a> to go back';
+                } else {
+                    if ($action == 'rank') {
+                        if ($race_id_var_get) {
+                            $sql2
+                                = "SELECT `race_id` FROM `tbl_races` WHERE `race_id`='$race_id_var_get' ORDER by `race_id` ASC";
+                        } else {
+                            if ($limit == "0") {
+                                $sql2
+                                    = "SELECT `race_id` FROM `tbl_races` WHERE `rank_status`='0' ORDER by `race_id` ASC";
+                            } else {
+                                $sql2
+                                    = "SELECT `race_id` FROM `tbl_races` WHERE `rank_status`='0' ORDER by `race_id` ASC LIMIT $limit";
+                            }
+                        }
+                        $raceres = $mysqli->query($sql2);
+                        if ($raceres->num_rows > 0) {
+                            // output data of each row
+                            while ($rowrc = $raceres->fetch_object()) {
+                                $countofhorses
+                                    = get_rows("`tbl_temp_hraces` WHERE `race_id`='$rowrc->race_id' AND `horse_fxodds`!='0'");
+                                echo 'All below results are for Race ID: '
+                                    .$rowrc->race_id.'<br /><br />';
+                                $get_distances
+                                    = $mysqli->query("SELECT DISTINCT CAST(race_distance AS UNSIGNED) AS racedist FROM tbl_hist_results WHERE `race_id`='$rowrc->race_id' ORDER by racedist ASC");
+                                $updaterankavg = "";
+                                while ($dists
+                                    = $get_distances->fetch_object()) {
+                                    // echo '<b>$dists->racedist</b>: '.$dists->racedist.'<br>';
+                                    $handitotal = get_handisum($rowrc->race_id,
+                                        $dists->racedist);
+                                    //echo $dists->racedist . ' ( ' . $handitotal . ' )<br />';
+                                    $numbersarray
+                                        = get_array_of_handicap($rowrc->race_id,
+                                        $dists->racedist);
+                                    $cnt = count($numbersarray);
+
+                                    $get_unique
+                                        = $mysqli->query("SELECT DISTINCT `horse_id` FROM `tbl_hist_results` WHERE `race_id`='$rowrc->race_id' AND `race_distance`='$dists->racedist'");
+                                    $i = 1;
+                                    while ($ghorse
+                                        = $get_unique->fetch_object()) {
+                                        $checkodds
+                                            = $mysqli->query("SELECT * FROM `tbl_temp_hraces` WHERE `race_id`='$rowrc->race_id' AND `horse_id`='$ghorse->horse_id'");
+                                        $goddds = $checkodds->fetch_object();
+                                        if (isset($goddds->horse_fxodds)
+                                            && $goddds->horse_fxodds != "0"
+                                        ) {
+                                            $get_hist
+                                                = $mysqli->query("SELECT MIN(handicap) as minihandi FROM `tbl_hist_results` WHERE `race_id`='$rowrc->race_id' AND `race_distance`='$dists->racedist' AND `horse_id`='$ghorse->horse_id'");
+                                            // echo '<b>$get_hist</b>: ' . "SELECT MIN(handicap) as minihandi FROM `tbl_hist_results` WHERE `race_id`='$rowrc->race_id' AND `race_distance`='$dists->racedist' AND `horse_id`='$ghorse->horse_id'".'<br>';
+                                            while ($shandi
+                                                = $get_hist->fetch_object()) {
+                                                // echo '<b>$shandi->minihandi</b>: '.$shandi->minihandi.'<br>';
+                                                // echo '<b>$countofhorses</b>: '.$countofhorses.'<br>';
+                                                if ($countofhorses > 0) {
+                                                    $per = ($cnt
+                                                            / $countofhorses)
+                                                        * 100;
+                                                    // echo '<b>$per</b>: '.$per.'<br><br>';
+                                                    if ($per
+                                                        > $position_percentage
+                                                    ) {
+                                                        $genrank
+                                                            = generate_rank($shandi->minihandi,
+                                                            $numbersarray);
+                                                        // echo '<b>$genrank</b>: '.$genrank.'<br>';
+                                                        $updaterankavg
+                                                            = "UPDATE `tbl_hist_results` SET `rank`='$genrank' WHERE `race_id`='$rowrc->race_id' AND `race_distance`= '$dists->racedist' AND `horse_id`='$ghorse->horse_id'";
+                                                        if ($mysqli->query($updaterankavg)) {
+                                                            echo $updaterankavg
+                                                                ."<br>";
+                                                            echo "-------------------"
+                                                                ."<br>";
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            ++$i;
+                                        }
+                                    }
+                                }
+                                if ($updaterankavg) {
+                                    $mysqli->query("UPDATE `tbl_races` SET `rank_status`='1' WHERE `race_id`='$rowrc->race_id'");
+                                }
+                            }
+                            echo '<h3>Your Action has been completed for Races. <a href="./updatehptime.php">Click Here</a> to go back</h3>';
+                        } else {
+                            echo '0 Results. <a href="./updatehptime.php">Click Here</a> to go back';
+                        }
+                    } else {
+                        if ($action == 'resetrating') {
+                            //Update rating using the avg sectional formula
+                            //$sql5 = "SELECT *  FROM `maxsectional` LEFT JOIN sec_avg_data ON sec_avg_data.race_id = maxsectional.race_id AND sec_avg_data.distance = maxsectional.distance";
+                            if ($limit == 0) {
+                                $sql6
+                                    = "Update `tbl_hist_results` SET `rating`='0'"; //Resetting Rating
+                            } else {
+                                $sql6
+                                    = "Update `tbl_hist_results` SET `rating`='0' LIMIT $limit";
+                            }
+                            $result6 = $mysqli->query($sql6);
+                            echo 'Rating Resetted. <a href="./updatehptime.php">Click Here</a> to go back';
+                        } else {
+                            if ($action == 'sectionalavg') {
+                                if ($race_id_var_get) {
+                                    $sql2
+                                        = "SELECT `race_id` FROM `tbl_races` WHERE `race_id`='$race_id_var_get'";
+                                } else {
+                                    if ($limit == "0") {
+                                        $sql2
+                                            = "SELECT `race_id` FROM `tbl_races` WHERE `sec_status`='0' OR `sec_status`='' ORDER by `race_id` ASC";
+                                    } else {
+                                        $sql2
+                                            = "SELECT `race_id` FROM `tbl_races` WHERE `sec_status`='0' OR `sec_status`='' ORDER by `race_id` ASC LIMIT $limit";
+                                    }
+                                }
+                                $raceres = $mysqli->query($sql2);
+                                if ($raceres->num_rows > 0) {
+                                    // output data of each row
+                                    while ($rowrc = $raceres->fetch_object()) {
+                                        $countofhorses
+                                            = get_rows("`tbl_temp_hraces` WHERE `race_id`='$rowrc->race_id' AND `horse_fxodds`!='0'");
+                                        echo 'All below results are for Race ID: '
+                                            .$rowrc->race_id.'<br /><br />';
+                                        $get_distances
+                                            = $mysqli->query("SELECT DISTINCT CAST(race_distance AS UNSIGNED) AS racedist FROM tbl_hist_results WHERE `race_id`='$rowrc->race_id' ORDER by racedist ASC");
+                                        $updateavgsec = "";
+                                        while ($dists
+                                            = $get_distances->fetch_object()) {
+                                            $secttotal
+                                                = get_sectionalsum($rowrc->race_id,
+                                                $dists->racedist);
+                                            //echo $dists->racedist . ' ( ' . $handitotal . ' )<br />';
+                                            $numbersarray
+                                                = get_array_of_avgsec($rowrc->race_id,
+                                                $dists->racedist);
+                                            $cnt = count($numbersarray);
+
+                                            $get_unique
+                                                = $mysqli->query("SELECT DISTINCT `horse_id` FROM `tbl_hist_results` WHERE `race_id`='$rowrc->race_id' AND `race_distance`='$dists->racedist'");
+                                            $i = 1;
+                                            while ($ghorse
+                                                = $get_unique->fetch_object()) {
+                                                $checkodds
+                                                    = $mysqli->query("SELECT * FROM `tbl_temp_hraces` WHERE `race_id`='$rowrc->race_id' AND `horse_id`='$ghorse->horse_id'");
+                                                $goddds
+                                                    = $checkodds->fetch_object();
+                                                if ($goddds->horse_fxodds
+                                                    != "0"
+                                                ) {
+                                                    $get_hist
+                                                        = $mysqli->query("SELECT MAX(avgsec) AS secavg FROM `tbl_hist_results` WHERE `race_id`='$rowrc->race_id' AND `race_distance`='$dists->racedist' AND `horse_id`='$ghorse->horse_id'");
+                                                    while ($ssect
+                                                        = $get_hist->fetch_object()) {
+                                                        $per = ($cnt
+                                                                / $countofhorses)
+                                                            * 100;
+                                                        if ($per
+                                                            > $position_percentage
+                                                        ) {
+                                                            $genavgsec
+                                                                = generate_avgsectional($ssect->secavg,
+                                                                $numbersarray);
+                                                            $updateavgsec
+                                                                = "UPDATE `tbl_hist_results` SET `avgsectional`='$genavgsec' WHERE `race_id`='$rowrc->race_id' AND `race_distance`= '$dists->racedist' AND `horse_id`='$ghorse->horse_id'";
+                                                            if ($mysqli->query($updateavgsec)) {
+                                                                echo $updateavgsec
+                                                                    ."<br>";
+                                                                echo "-------------------"
+                                                                    ."<br>";
+                                                            }
+                                                        }
+                                                    }
+                                                    ++$i;
+                                                }
+                                            }
+                                        }
+                                        if ($updateavgsec) {
+                                            $mysqli->query("UPDATE `tbl_races` SET `sec_status`='1' WHERE `race_id`='$rowrc->race_id'");
+                                        }
+                                    }
+                                    echo '<h3>Your Action has been completed for Sectional. <a href="./updatehptime.php">Click Here</a> to go back</h3>';
+                                } else {
+                                    echo '0 Results. <a href="./updatehptime.php">Click Here</a> to go back';
+                                }
+                            } else {
+                                if ($action == 'datarating') {
+                                    if ($race_id_var_get) {
+                                        $sqldatarat
+                                            = "SELECT * FROM `tbl_hist_results` WHERE `rating`='0' AND `race_id`='$race_id_var_get'";
+                                    } else {
+                                        if ($limit == "0") {
+                                            $sqldatarat
+                                                = "SELECT * FROM `tbl_hist_results` WHERE `rating`='0'";
+                                        } else {
+                                            $sqldatarat
+                                                = "SELECT * FROM `tbl_hist_results` WHERE `rating`='0' LIMIT $limit";
+                                        }
+                                    }
+                                    $datarat = $mysqli->query($sqldatarat);
+                                    if ($datarat->num_rows > 0) {
+                                        while ($ratin
+                                            = $datarat->fetch_object()) {
+                                            echo '<br>$ratin->avgsectional: '
+                                                .$ratin->avgsectional.'<br>';
+                                            echo '$ratin->rank: '.$ratin->rank
+                                                .'<br>';
+                                            echo '$ratin->hist_id: '
+                                                .$ratin->hist_id.'<br>';
+                                            if ($ratin->avgsectional != "0"
+                                                || $ratin->rank != "0"
+                                            ) {
+                                                // echo $ratin->avgsectional;
+                                                $ratepos = $ratin->avgsectional
+                                                    + $ratin->rank;
+                                                $updaterankavg1
+                                                    = $mysqli->query("UPDATE `tbl_hist_results` SET `rating`='$ratepos' WHERE `hist_id`= '$ratin->hist_id'");
+                                                echo 'Rating Done for: '
+                                                    .$ratin->hist_id.'<br />';
+                                            }
+                                        }
+                                        echo 'Your Action has been completed. <a href="./updatehptime.php">Click Here</a> to go back';
+                                    } else {
+                                        echo '0 Results. <a href="./updatehptime.php">Click Here</a> to go back';
+                                    }
+                                } else {
+                                    if ($action == 'ranksectionalavgrating') {
+                                        // rank
+                                        if ($race_id_var_get) {
+                                            $sql2 = "SELECT `race_id` FROM `tbl_races` WHERE `race_id`='$race_id_var_get' ORDER by `race_id` ASC";
+                                        } else {
+                                            if($limit == "0") {
+                                                $sql2 = "SELECT `race_id` FROM `tbl_races` WHERE `rank_status`='0' ORDER by `race_id` ASC";
+                                            } else {
+                                                $sql2 = "SELECT `race_id` FROM `tbl_races` WHERE `rank_status`='0' ORDER by `race_id` ASC LIMIT $limit";
+                                            }
+                                        }
+                                        $raceres = $mysqli->query($sql2);
+                                        if ($raceres->num_rows > 0) {
+                                            // output data of each row
+                                            while ($rowrc = $raceres->fetch_object()) {
+                                                $countofhorses = get_rows("`tbl_temp_hraces` WHERE `race_id`='$rowrc->race_id' AND `horse_fxodds`!='0'");
+                                                echo 'All below results are for Race ID: ' . $rowrc->race_id . '<br /><br />';
+                                                $get_distances = $mysqli->query("SELECT DISTINCT CAST(race_distance AS UNSIGNED) AS racedist FROM tbl_hist_results WHERE `race_id`='$rowrc->race_id' ORDER by racedist ASC");
+                                                $updaterankavg = "";
+                                                while($dists = $get_distances->fetch_object()) {
+                                                    // echo '<b>$dists->racedist</b>: '.$dists->racedist.'<br>';
+                                                    $handitotal = get_handisum($rowrc->race_id, $dists->racedist);
+                                                    //echo $dists->racedist . ' ( ' . $handitotal . ' )<br />';
+                                                    $numbersarray = get_array_of_handicap($rowrc->race_id, $dists->racedist);
+                                                    $cnt = count($numbersarray);
+
+                                                    $get_unique = $mysqli->query("SELECT DISTINCT `horse_id` FROM `tbl_hist_results` WHERE `race_id`='$rowrc->race_id' AND `race_distance`='$dists->racedist'");
+                                                    $i = 1;
+                                                    while($ghorse = $get_unique->fetch_object()) {
+                                                        $checkodds = $mysqli->query("SELECT * FROM `tbl_temp_hraces` WHERE `race_id`='$rowrc->race_id' AND `horse_id`='$ghorse->horse_id'");
+                                                        $goddds = $checkodds->fetch_object();
+                                                        if(isset($goddds->horse_fxodds) && $goddds->horse_fxodds != "0") {
+                                                            $get_hist = $mysqli->query("SELECT MIN(handicap) as minihandi FROM `tbl_hist_results` WHERE `race_id`='$rowrc->race_id' AND `race_distance`='$dists->racedist' AND `horse_id`='$ghorse->horse_id'");
+                                                            // echo '<b>$get_hist</b>: ' . "SELECT MIN(handicap) as minihandi FROM `tbl_hist_results` WHERE `race_id`='$rowrc->race_id' AND `race_distance`='$dists->racedist' AND `horse_id`='$ghorse->horse_id'".'<br>';
+                                                            while($shandi = $get_hist->fetch_object()) {
+                                                                // echo '<b>$shandi->minihandi</b>: '.$shandi->minihandi.'<br>';
+                                                                // echo '<b>$countofhorses</b>: '.$countofhorses.'<br>';
+                                                                if($countofhorses > 0) {
+                                                                    $per = ($cnt / $countofhorses) * 100;
+                                                                    // echo '<b>$per</b>: '.$per.'<br><br>';
+                                                                    if ($per > $position_percentage) {
+                                                                        $genrank = generate_rank($shandi->minihandi, $numbersarray);
+                                                                        // echo '<b>$genrank</b>: '.$genrank.'<br>';
+                                                                        $updaterankavg = "UPDATE `tbl_hist_results` SET `rank`='$genrank' WHERE `race_id`='$rowrc->race_id' AND `race_distance`= '$dists->racedist' AND `horse_id`='$ghorse->horse_id'";
+                                                                        if($mysqli->query($updaterankavg)) {
+                                                                            echo $updaterankavg . "<br>";
+                                                                            echo "-------------------" . "<br>";
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                            ++$i;
+                                                        }
+                                                    }
+                                                }
+                                                if($updaterankavg) {
+                                                    $mysqli->query("UPDATE `tbl_races` SET `rank_status`='1' WHERE `race_id`='$rowrc->race_id'");
+                                                }
+                                            }
+                                            echo '<h3>Your Action has been completed for Races. <a href="./updatehptime.php">Click Here</a> to go back</h3>';
+                                        }
+                                        else { echo '0 Results. <a href="./updatehptime.php">Click Here</a> to go back'; }
+                                        // .rank
+                                        // sectionalavg
+                                        if ($race_id_var_get) {
+                                            $sql2 = "SELECT `race_id` FROM `tbl_races` WHERE `race_id`='$race_id_var_get'";
+                                        } else {
+                                            if($limit == "0") {
+                                                $sql2 = "SELECT `race_id` FROM `tbl_races` WHERE `sec_status`='0' OR `sec_status`='' ORDER by `race_id` ASC";
+                                            } else {
+                                                $sql2 = "SELECT `race_id` FROM `tbl_races` WHERE `sec_status`='0' OR `sec_status`='' ORDER by `race_id` ASC LIMIT $limit";
+                                            }
+                                        }
+                                        $raceres = $mysqli->query($sql2);
+                                        if ($raceres->num_rows > 0) {
+                                            // output data of each row
+                                            while ($rowrc = $raceres->fetch_object()) {
+                                                $countofhorses = get_rows("`tbl_temp_hraces` WHERE `race_id`='$rowrc->race_id' AND `horse_fxodds`!='0'");
+                                                echo 'All below results are for Race ID: ' . $rowrc->race_id . '<br /><br />';
+                                                $get_distances = $mysqli->query("SELECT DISTINCT CAST(race_distance AS UNSIGNED) AS racedist FROM tbl_hist_results WHERE `race_id`='$rowrc->race_id' ORDER by racedist ASC");
+                                                $updateavgsec = "";
+                                                while($dists = $get_distances->fetch_object()) {
+                                                    $secttotal = get_sectionalsum($rowrc->race_id, $dists->racedist);
+                                                    //echo $dists->racedist . ' ( ' . $handitotal . ' )<br />';
+                                                    $numbersarray = get_array_of_avgsec($rowrc->race_id, $dists->racedist);
+                                                    $cnt = count($numbersarray);
+
+                                                    $get_unique = $mysqli->query("SELECT DISTINCT `horse_id` FROM `tbl_hist_results` WHERE `race_id`='$rowrc->race_id' AND `race_distance`='$dists->racedist'");
+                                                    $i = 1;
+                                                    while($ghorse = $get_unique->fetch_object()) {
+                                                        $checkodds = $mysqli->query("SELECT * FROM `tbl_temp_hraces` WHERE `race_id`='$rowrc->race_id' AND `horse_id`='$ghorse->horse_id'");
+                                                        $goddds = $checkodds->fetch_object();
+                                                        if($goddds->horse_fxodds != "0") {
+                                                            $get_hist = $mysqli->query("SELECT MAX(avgsec) AS secavg FROM `tbl_hist_results` WHERE `race_id`='$rowrc->race_id' AND `race_distance`='$dists->racedist' AND `horse_id`='$ghorse->horse_id'");
+                                                            while($ssect = $get_hist->fetch_object()) {
+                                                                $per = ($cnt / $countofhorses) * 100;
+                                                                if ($per > $position_percentage) {
+                                                                    $genavgsec = generate_avgsectional($ssect->secavg, $numbersarray);
+                                                                    $updateavgsec = "UPDATE `tbl_hist_results` SET `avgsectional`='$genavgsec' WHERE `race_id`='$rowrc->race_id' AND `race_distance`= '$dists->racedist' AND `horse_id`='$ghorse->horse_id'";
+                                                                    if($mysqli->query($updateavgsec)) {
+                                                                        echo $updateavgsec . "<br>";
+                                                                        echo "-------------------" . "<br>";
+                                                                    }
+                                                                }
+                                                            }
+                                                            ++$i;
+                                                        }
+                                                    }
+                                                }
+                                                if($updateavgsec) {
+                                                    $mysqli->query("UPDATE `tbl_races` SET `sec_status`='1' WHERE `race_id`='$rowrc->race_id'");
+                                                }
+                                            }
+                                            echo '<h3>Your Action has been completed for Sectional. <a href="./updatehptime.php">Click Here</a> to go back</h3>';
+                                        }
+                                        else { echo '0 Results. <a href="./updatehptime.php">Click Here</a> to go back'; }
+                                        // .sectionalavg
+                                        // rating
+                                        if ($race_id_var_get) {
+                                            $sqldatarat = "SELECT * FROM `tbl_hist_results` WHERE `rating`='0' AND `race_id`='$race_id_var_get'";
+                                        } else {
+                                            if($limit == "0") {
+                                                $sqldatarat = "SELECT * FROM `tbl_hist_results` WHERE `rating`='0'";
+                                            }
+                                            else {
+                                                $sqldatarat = "SELECT * FROM `tbl_hist_results` WHERE `rating`='0' LIMIT $limit";
+                                            }
+                                        }
+                                        $datarat = $mysqli->query($sqldatarat);
+                                        if($datarat->num_rows > 0) {
+                                            while($ratin = $datarat->fetch_object()) {
+                                                echo '<br>$ratin->avgsectional: ' . $ratin->avgsectional.'<br>';
+                                                echo '$ratin->rank: ' . $ratin->rank.'<br>';
+                                                echo '$ratin->hist_id: ' . $ratin->hist_id.'<br>';
+                                                if($ratin->avgsectional != "0" || $ratin->rank != "0") {
+                                                    // echo $ratin->avgsectional;
+                                                    $ratepos = $ratin->avgsectional + $ratin->rank;
+                                                    $updaterankavg1 = $mysqli->query("UPDATE `tbl_hist_results` SET `rating`='$ratepos' WHERE `hist_id`= '$ratin->hist_id'");
+                                                    echo 'Rating Done for: ' . $ratin->hist_id . '<br />';
+                                                }
+                                            }
+                                            echo 'Your Action has been completed. <a href="./updatehptime.php">Click Here</a> to go back';
+                                        }
+                                        else {
+                                            echo '0 Results. <a href="./updatehptime.php">Click Here</a> to go back';
+                                        }
+                                        // .rating
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
-    } else {
-        if ($distance < $orgdistance) {
-            $newtime = loses_rounded_up($time, $length, $modifier, $remainder);
-        } else if ($distance > $orgdistance) {
-            $newtime = loses_rounded_down($time, $length, $modifier, $remainder);
-        } else {
-            $newtime = $time + ($length * $modifier);
-        }
-    }
-    return $newtime;
-}
-
-function get_remainder($distance) {
-
-    if ($distance % 10 < 5) {
-        $distance -= $distance % 10;
-    } else {
-        $distance += (10 - ($distance % 10));
-    }
-
-    if ($distance % 100 < 50) {
-        $reminder_distance = $distance % 100;
-    } else {
-        $reminder_distance = (100 - ($distance % 100));
-    }
-    $reminder = $reminder_distance;
-    return $reminder;
-}
-
-//if horse wins   
-function win_rounded_up($time, $length, $modifier, $remainder) {
-
-    $newtime = $time + (0.0007 * $remainder);
-    return $newtime;
-}
-
-//if horse wins  
-function win_rounded_down($time, $length, $modifier, $remainder) {
-
-    $newtime = $time - (0.0007 * $remainder);
-    return $newtime;
-}
-
-//if horse loses  
-function loses_rounded_up($time, $length, $modifier, $remainder) {
-    //time+(length*modifier)-(0.0007*$remainder);
-
-    $newtime = $time + ($length * $modifier) + (0.0007 * $remainder);
-    return $newtime;
-}
-
-//if horse loses  
-function loses_rounded_down($time, $length, $modifier, $remainder) {
-
-    $newtime = $time + ($length * $modifier) - (0.0007 * $remainder);
-    return $newtime;
-}
-
-function rating_system($handicap, $section, $oldweight, $newweight) {
-    $pos = explode('/', $section);
-
-    if (isset($pos[1])) {
-        $sectiontime = $pos[1];
-    } else {
-        $sectiontime = 0;
-    }
-
-    $weight = weight_points($oldweight, $newweight);
-    $handicappoints = $handicap;
-    // $handicappoints = $rankavg;
-    //$sectionpoints = sectional avgvalue from  forumla;
-    if ($sectiontime == 0) {
-        $sectionpoints = 0;
-    } else {
-        $sectionpoints = (9 / $sectiontime) * 100;
-    }
-    $rating = $handicappoints + $sectionpoints + ($weight / 100);
-    return $rating;
-}
-
-function weight_points($oldweight, $newweight) {
-
-    $weight = $newweight - $oldweight;
-
-    if ($weight > 3) {
-        $wgt = 1.5;
-        return $wgt;
-    }
-    if ($weight > 2 && $weight <= 2.5) {
-        $wgt = 1;
-        return $wgt;
-    }
-    if ($weight > 1 && $weight <= 1.5) {
-        $wgt = 0.5;
-        return $wgt;
-    }
-    if ($weight > 0 && $weight <= 0.5) {
-        $wgt = 1;
-        return $wgt;
-    }
-    if ($weight > -0.5 && $weight <= 0) {
-        $wgt = -1.5;
-        return $wgt;
-    }
-    if ($weight > -1 && $weight <= -1.5) {
-        $wgt = -2;
-        return $wgt;
-    }
-    if ($weight > -1 && $weight <= -2.5) {
-        $wgt = -2;
-        return $wgt;
-    }
-    if ($weight > -3 && $weight < -2.5) {
-        $wgt = -3;
-        return $wgt;
     }
 }
-
-function rank_avg($value, $array, $order = 0) {
-// sort  
-    if ($order)
-        sort($array);
-    else
-        rsort($array);
-// add item for counting from 1 but 0
-    array_unshift($array, $value + 1);
-// select all indexes vith the value
-    $keys = array_keys($array, $value);
-    if (count($keys) == 0)
-        return NULL;
-// calculate the rank
-
-    $res = array_sum($keys) / count($keys);
-        return $res / 2;
-}
-
-function sectional_avg($value, $array, $order = 0) {
-
-// sort  
-    if ($order)
-        sort($array);
-    else
-        rsort($array);
-// add item for counting from 1 but 0
-    array_unshift($array, $value + 1);
-// select all indexes vith the value
-    $keys = array_keys($array, $value);
-    if (count($keys) == 0)
-        return NULL;
-// calculate the rank
-
-    $res = array_sum($keys) / count($keys);
-
-    return $res / 2;
-}
-
-function rating_system_new($rankavg, $avgsectional, $oldweight, $newweight) {
-    //$rating = $rankavg;
-    //$rating = $rankavg+$avgsectional;
-    //$weight = weight_points($oldweight, $newweight);
-    //$handicappoints = $handicap;
-
-    $rating = $rankavg + $avgsectional;
-
-    return $rating;
-}
-
-?>

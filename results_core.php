@@ -1,5 +1,5 @@
 <?php
-
+date_default_timezone_set('Europe/London');
 $today_date = date('Y-m-d', $str_date);
 $today_date_for_db = date('d/n/Y', $str_date);
 
@@ -13,15 +13,15 @@ error_reporting(E_ALL);
 chdir(dirname(__FILE__));
 include_once('simple_html_dom.php');
 
-include('constant.php');
+include('includes/config.php');
 try {
-    $dbh = new PDO('mysql:host='.$servername.';dbname='.$dbname, $username, $password);    
+    $dbh = new PDO('mysql:host='.$servername.';dbname='.$dbname, $username, $password);
 } catch (PDOException $e) {
     print "Error!: " . $e->getMessage() . "<br/>";
     die();
 }
 
-$base_url = 'http://www.racingzone.com.au';
+$base_url = 'https://www.racingzone.com.au';
 $part_url = '/results/'.$today_date.'/';
 $parse_url = $base_url.$part_url;
 
@@ -40,19 +40,19 @@ foreach ($tables as $table) {
         // select meeting_id
         $meeting_date = $today_date;
         $meeting_name = $row->find('td', 0)->find('a', 0)->plaintext;
-        $stmt = $dbh->prepare("SELECT meeting_id FROM meetings WHERE meeting_date = ? AND meeting_name = ?");
+        $stmt = $dbh->prepare("SELECT meeting_id FROM tbl_meetings WHERE meeting_date = ? AND meeting_name = ?");
         if ($stmt->execute(array($meeting_date, $meeting_name))) {
             $meeting_id = $stmt->fetchColumn();
         } else {
             $msg['danger'][] = "[" . date("Y-m-d H:i:s") . "] Find meeting_id error: " . $stmt->error;
         }
-        // .select meeting_id        
+        // .select meeting_id
         $race_number = 1;
         $tds = $row->find('td.popup-race');
         foreach ($tds as $td) {
             if (empty($td->title)) {
                 continue;
-            }            
+            }
             // get race_date
             $race_date = date('d/m/y', $str_date);
             // .get race_date
@@ -71,16 +71,16 @@ foreach ($tables as $table) {
             $race_distance_span = end($race_distance_spans);
             $race_distance = $race_distance_span->plaintext;
             $race_distance = str_ireplace('m', '', $race_distance);
-            // .get race_distance            
+            // .get race_distance
             // select race_id
-            $stmt = $dbh->prepare("SELECT race_id FROM races WHERE meeting_id = ? AND race_number = ? AND race_distance = ?");
+            $stmt = $dbh->prepare("SELECT race_id FROM tbl_races WHERE meeting_id = ? AND race_order = ? AND race_distance = ?");
             if ($stmt->execute(array($meeting_id, $race_number, $race_distance))) {
                 $race_id = $stmt->fetchColumn();
             } else {
                 $msg['danger'][] = "[" . date("Y-m-d H:i:s") . "] Find race_id error: " . $stmt->error;
             }
             $race_number++;
-            // .select race_id            
+            // .select race_id
             $race_table = $race_html->find('table.formguide', 0);
             $race_table_rows = $race_table->find('tr');
             $i = 1;
@@ -89,31 +89,26 @@ foreach ($tables as $table) {
                     if (strpos($race_table_row->class, 'scratch') == false) {
                         $horse_position = $i;
                         $horse_name = $race_table_row->find('td.horse a', 0)->plaintext;
+						$horseslug = preg_replace('/[^A-Za-z0-9\-]/', '', strtolower($horse_name));
+
+						$stmt = $dbh->prepare("SELECT horse_id FROM tbl_horses WHERE horse_slug = ?");
+						if ($stmt->execute(array($horseslug))) {
+							$horse_id = $stmt->fetchColumn();
+						}
+
                         $i++;
-                        // select data_id
-                        $data_id = null;                        
-                        $stmt = $dbh->prepare("SELECT id FROM data WHERE race_date = ? AND race_name = ? AND name = ? AND track_name = ? LIMIT 1");
-                        if ($stmt->execute(array($race_date, $race_name, $horse_name, $meeting_name))) {
-                            $data_id = $stmt->fetchColumn();
-                        } else {
-                            $msg['danger'][] = "[" . date("Y-m-d H:i:s") . "] Find data_id error: " . $stmt->error;
-                        }
-                        // select data_id
-                        $stmt = $dbh->prepare('INSERT IGNORE INTO results (race_id, data_id, position, horse, date, event, distance) VALUE(:race_id, :data_id, :position, :horse, :date, :event, :distance)');
+
+                        $stmt = $dbh->prepare('INSERT IGNORE INTO tbl_results (race_id, horse_id, position) VALUE(:race_id, :horse_id, :position)');
                         $data = array(
-                            ':race_id' => $race_id,
-                            ':data_id' => $data_id,
-                            ':position' => $horse_position,
-                            ':horse' => $horse_name,
-                            ':date' => $today_date_for_db,
-                            ':event' => $meeting_name,
-                            ':distance' => $race_distance
-                        );
-                        if (!$stmt->execute($data)) {
-                            $msg['danger'][] = "[" . date("Y-m-d H:i:s") . "] Insert failed: " . $stmt->error;
-                        } else {
+							':race_id' => $race_id,
+							':horse_id' => $horse_id,
+							':position' => $horse_position,
+						);
+						if (!$stmt->execute($data)) {
+							$msg['danger'][] = "[" . date("Y-m-d H:i:s") . "] Insert failed: " . $stmt->error;
+						} else {
                             $insert_counter++;
-                        }                    
+                        }
                     }
                 }
             } else {
@@ -122,7 +117,7 @@ foreach ($tables as $table) {
         }
     }
 }
-    
+
 $dbh = null;
 
 $msg['success'][] = 'Successfully found '.$insert_counter.' items.';

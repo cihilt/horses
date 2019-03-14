@@ -1,52 +1,46 @@
 <?php
-include('constant.php');
+include('includes/config.php');
 
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+if ($mysqli->connect_error) {
+    die("Connection failed: " . $mysqli->connect_error);
 }
 
-$sql = "SELECT *  FROM meetings";
-
-
-if(isset($_REQUEST['date'])){
-  
+if(isset($_REQUEST['date'])){ 
     $date = $_POST['date'];
-    $sql = "SELECT *  FROM meetings WHERE meeting_date = '$date'";
+    $sql = "SELECT * FROM `tbl_meetings` WHERE `meeting_date`='$date'";
 }
-
-$result = $conn->query($sql);
-
+else {
+	$sql = "SELECT * FROM `tbl_meetings`";
+}
+$result = $mysqli->query($sql);
 ?>
-
 <!DOCTYPE html>
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-        <title>Horses Data</title>
-        
-       <script src=https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js></script>
-
-        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.9/css/jquery.dataTables.min.css"/>
+        <title>Horses Data</title>      
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+		<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.9/css/jquery.dataTables.min.css"/>
 
         <script type="text/javascript" src="https://cdn.datatables.net/1.10.9/js/jquery.dataTables.min.js"></script>
         <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/1.0.3/css/dataTables.responsive.css">
         <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/responsive/1.0.3/js/dataTables.responsive.js"></script>
 
+		<link rel="stylesheet" id="main-css" href="assests/main.css" type="text/css" media="all">
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+        
+        <!-- Optional theme -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
 
-<link rel="stylesheet" id="main-css" href="main.css" type="text/css" media="all">
-<!-- Latest compiled and minified CSS -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-
-<!-- Optional theme -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
-
-<!-- Latest compiled and minified JavaScript -->
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+		<!-- Latest compiled and minified JavaScript -->
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+        
 <ul>
-  <li><a href="/">Home</a></li>
-   <li><a href="result.php" >Results</a></li>
+  <li><a href="#">Home</a></li>
+  <li><a href="horses.php">Horses</a></li>
   <li><a href="meeting.php" class="active">Meetings</a></li>
-  
+  <li><a href="races.php?meeting=1" >Races</a></li>
 </ul>
 
     <div class="container">
@@ -76,14 +70,14 @@ $result = $conn->query($sql);
 <?php
 if ($result->num_rows > 0) {
     // output data of each row
-    while ($row = $result->fetch_assoc()) {
+    while ($row = $result->fetch_object()) {
         echo "<tr><td>" .
-        $row["meeting_date"] . "</td><td><a href='race.php?meetingid=" . $row['meeting_id'] . "&mname=".$row['meeting_name']."'>" . $row["meeting_name"] . "</a></td></tr>";
+        $row->meeting_date . "</td><td><a href='races.php?meeting=" . $row->meeting_id . "'>" . $row->meeting_name. "</a></td></tr>";
     }
 } else {
     echo "0 results";
 }
-$conn->close();
+$mysqli->close();
 ?>
                     </tbody>
                     <tfoot>
