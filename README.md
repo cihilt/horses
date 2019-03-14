@@ -1,5 +1,6 @@
 Project Goal
-############
+-------------
+
 
 My site tries to  predicts the position of a horse to real horse races in Australia.
 The prediction is done by combining current and past data and applying algorithms onto this data.
@@ -8,25 +9,17 @@ Currently there is two algorithms.
 The first one is located at:
 /beta/updatehptime.php
 
-My goal, is to be able to switch algorithms and apply them with a click of a button.
+The current Project Goal is Parallel PHP
 
-The issue is currently that only raceID can be selected.
-I would like to add an additional option, where I can select all Races.
-
-
-
-Details
-######################
 
 How to do this
 -------------
 
-Currently we are selecting one 
-
+This task is currently being worked on.
 
 
 How The site works
-###################
+-------------
 In order to do race predicions, we need to have data.
 This data is historical data and current data.
 This data collectively is used to give a Ranking and a Rating. 
@@ -79,8 +72,7 @@ Meeting id (91)
 
  
 How does the Algorithm Work
-###############################
-
+-------------
 We get the following data, such as  past Historical Data 
 -> tbl_hist_results (past races) and race data (tbl_horses & tbl_temp_hraces)
 
@@ -105,7 +97,7 @@ If the horse didn't win, we use length from the winner and apply a penalty.
 
 
 How is Average Rank Algorithm calculated?
-##########################################
+-------------
 At this stage, AverageRank = fastest handicap time with a point allocation system.
 More information about how this works can be found on distance.php with checking comments //gavri.
 
@@ -191,9 +183,8 @@ function generate_rank($value, $array, $order = 0) {
 
 
 
-
 About race.php
-#####################
+-------------
 
 Race combines the current race data such as:
 No, Weight, Form, Odds
