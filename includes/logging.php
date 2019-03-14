@@ -38,6 +38,8 @@ class logger
         if (empty(self::$filePath)) {
             self::$filePath = 'log.log';
         }
+
+        $this->setLevel($level);
     }
 
     protected function logPath()
