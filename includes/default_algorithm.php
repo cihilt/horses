@@ -50,9 +50,9 @@ if (isset($_POST['default_algorithm'])) {
 
     $selectedAlgorithm = $algorithms[$defaultAlgId];
     if ($selectedAlgorithm == 'udpatehptime') {
-        udpatehptime($mysqli, $position_percentage, $raceId, $updateLimit);
+        udpatehptime($mysqli, $positionPercentage, $updateLimit, $raceId);
     } elseif ($selectedAlgorithm == 'distance_new') {
-        distance_new($mysqli, $position_percentage, $raceId, $distance);
+        distance_new($mysqli, $positionPercentage, $distance, $raceId);
     }
 
     $logger->setLevel();

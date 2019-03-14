@@ -1,10 +1,10 @@
 <?php
 
 if (!isset($logger)) {
-    $logger = new $logger->log(); 
+    $logger = new logger();
 }
 
-function udpatehptime($mysqli, $position_percentage, $raceId = 0, $limit = 0)
+function udpatehptime($mysqli, $position_percentage, $limit = 0, $raceId = 0)
 {
     global $logger;
     $logger->log('Started: '. __FUNCTION__);
@@ -278,7 +278,7 @@ function udpatehptime($mysqli, $position_percentage, $raceId = 0, $limit = 0)
     $logger->log('Finished: '. __FUNCTION__);
 }
 
-function distance_new($mysqli, $position_percentage, $raceId, $distance = 0)
+function distance_new($mysqli, $position_percentage, $distance = 0, $raceId = 0)
 {
     global $logger;
     $logger->log('Started: '. __FUNCTION__);
@@ -294,6 +294,11 @@ function distance_new($mysqli, $position_percentage, $raceId, $distance = 0)
         }
 
         return array_search($value, $array) + 1;
+    }
+
+    if ($raceId == 0) {
+        $logger->log("Race id is $raceId. Exit");
+        return;
     }
 
     $q = "SELECT `race_id` FROM `tbl_races` 
