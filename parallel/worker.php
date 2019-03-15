@@ -49,7 +49,7 @@ $wLogger->log('Worker started: ' . $procId);
 $wLogger->log('Offset: ' . $qLimit);
 while ($race = $races->fetch_object()) {
     $algArgs['raceId'] = $race->race_id;
-    $wLogger->log("Run the function with params: mysqli, $algArgs[1], $algArgs[2], {$algArgs['raceId']}");
+    $wLogger->log("Worker $procId: run the function with params: mysqli, $algArgs[1], $algArgs[2], {$algArgs['raceId']}");
     call_user_func_array($algTitle, $algArgs);
     $i++;
 }
