@@ -51,8 +51,6 @@ if(isset($_POST['run'])) {
     $rawChunk = $totalRows / $workersCount;
     $chunk = floor($totalRows / $workersCount);
 
-    $chunk = 7;
-    $rawChunk = 8;
     // create threads
     $offsetStart = $offsetLimit = 0;
     for ($i = 0; $i < $workersCount; $i++) {
