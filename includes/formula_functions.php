@@ -31,6 +31,10 @@ function udpatehptime($mysqli, $position_percentage, $limit = 0, $raceId = 0)
 
     // rank
     if ($races->num_rows > 0) {
+
+        $logger->log('Start calculation of the rank');
+        if ($raceId) $logger->log('RaceID is ' . $raceId);
+
         while ($race = $races->fetch_object()) {
             $horsesCount = get_rows(
                 "`tbl_temp_hraces` 
@@ -38,14 +42,14 @@ function udpatehptime($mysqli, $position_percentage, $limit = 0, $raceId = 0)
                 AND `horse_fxodds`!='0'"
             );
 
-            $logger->log('All below results are for Race ID: '
-                .$race->race_id);
+            $qDistance = "SELECT DISTINCT CAST(race_distance AS UNSIGNED) AS racedist 
+                          FROM tbl_hist_results 
+                          WHERE `race_id`='$race->race_id' 
+                          ORDER by racedist ASC";
+            $distances = $mysqli->query($qDistance);
 
-            $distances = $mysqli->query(
-                "SELECT DISTINCT CAST(race_distance AS UNSIGNED) AS racedist 
-                 FROM tbl_hist_results 
-                 WHERE `race_id`='$race->race_id' 
-                 ORDER by racedist ASC");
+            $logger->log('Rank. All below results are for Race ID: '.$race->race_id, 'debug');
+            $logger->log($qDistance, 'debug');
 
             $updateQuery = "";
             while ($distance = $distances->fetch_object()) {
@@ -122,7 +126,7 @@ function udpatehptime($mysqli, $position_percentage, $limit = 0, $raceId = 0)
                 }
             }
         }
-        $logger->log('Action has been completed for Rank');
+        $logger->log('Finish calculation of the rank');
     } else {
         $logger->log('Rank: 0 results');
     }
@@ -148,19 +152,23 @@ function udpatehptime($mysqli, $position_percentage, $limit = 0, $raceId = 0)
     }
     $races = $mysqli->query($q);
     if ($races->num_rows > 0) {
+
+        $logger->log('Start calculation of the Sectional AVG');
+        if ($raceId) $logger->log('RaceID is ' . $raceId);
+
         while ($race = $races->fetch_object()) {
             $horsesCount = get_rows(
                 "`tbl_temp_hraces` WHERE `race_id`='$race->race_id' AND `horse_fxodds`!='0'"
             );
 
-            $logger->log('All below results are for Race ID: '.$race->race_id);
+            $qDistance = "SELECT DISTINCT CAST(race_distance AS UNSIGNED) AS racedist 
+                          FROM tbl_hist_results 
+                          WHERE `race_id`='$race->race_id' 
+                          ORDER by racedist ASC";
+            $distances = $mysqli->query($qDistance);
 
-            $distances = $mysqli->query(
-                "SELECT DISTINCT CAST(race_distance AS UNSIGNED) AS racedist 
-                 FROM tbl_hist_results 
-                 WHERE `race_id`='$race->race_id' 
-                 ORDER by racedist ASC"
-            );
+            $logger->log('Sectional AVG. All below results are for Race ID: '.$race->race_id, 'debug');
+            $logger->log($qDistance, 'debug');
 
             $updateQuery = "";
             while ($distance = $distances->fetch_object()) {
@@ -230,7 +238,7 @@ function udpatehptime($mysqli, $position_percentage, $limit = 0, $raceId = 0)
                 }
             }
         }
-        $logger->log('Action has been completed for Sectional AVG');
+        $logger->log('Finish calculation of the Sectional AVG');
     } else {
         $logger->log('Sectional AVG: 0 results');
     }
@@ -251,26 +259,32 @@ function udpatehptime($mysqli, $position_percentage, $limit = 0, $raceId = 0)
 
     $results = $mysqli->query($q);
     if ($results->num_rows > 0) {
+
+        $logger->log('Start calculation of the rating');
+        if ($raceId) $logger->log('RaceID is ' . $raceId);
+
         while ($row = $results->fetch_object()) {
             $logMessage = 'avgsectional: '.$row->avgsectional.PHP_EOL;
             $logMessage .= 'rank: '.$row->rank.PHP_EOL;
             $logMessage .= 'hist_id: '.$row->hist_id;
-            $logger->log($logMessage);
+            $logger->log($logMessage, 'debug');
 
             if ($row->avgsectional != "0" || $row->rank != "0") {
                 $ratePos = $row->avgsectional + $row->rank;
                 $q = "UPDATE `tbl_hist_results` 
                      SET `rating`='$ratePos' 
                      WHERE `hist_id`= '$row->hist_id'";
+
                 if ($mysqli->query($q)) {
                     $logger->log($q, 'debug');
                 } else {
                     $logger->log($mysqli->error, 'error');
                 }
-                $logger->log('Rating Done for: '.$row->hist_id);
+
+                $logger->log('Rating done for: '.$row->hist_id, 'debug');
             }
         }
-        $logger->log('Action has been completed for Rating');
+        $logger->log('Finish calculation of the rating');
     } else {
         $logger->log('Rating: 0 results');
     }
@@ -313,7 +327,8 @@ function distance_new($mysqli, $position_percentage, $distance = 0, $raceId = 0)
                  AND `horse_fxodds`!='0'"
             );
 
-            $logger->log('All below results are for Race ID: ' . $race->race_id);
+            $logger->log(__FUNCTION__ . ' | Start calculation of the Rank');
+            if ($raceId) $logger->log('RaceID is ' . $raceId);
 
             $distancesResult = $mysqli->query(
                 "SELECT DISTINCT CAST(race_distance AS UNSIGNED) AS racedist 
@@ -400,7 +415,7 @@ function distance_new($mysqli, $position_percentage, $distance = 0, $raceId = 0)
                 }
             }
         }
-        $logger->log('Action has been completed for distance_new');
+        $logger->log('Finish calculation of the Rank');
     } else {
         $logger->log('Rating: 0 results');
     }
