@@ -59,11 +59,33 @@ function result_details($rid, $hid)
     return $detail;
 }
 
+/**
+ * Get an item from an array by key.
+ *
+ * Return a default value in a case when the item is not in an array.
+ *
+ * @param array $data
+ * @param string $key
+ * @param null  $defaultValue
+ *
+ * @return mixed|null
+ */
 function arrayGet(array $data, $key, $defaultValue = null)
 {
     return (isset($data[$key])) ? $data[$key] : $defaultValue;
 }
 
+/**
+ * Run multiple queries.
+ *
+ * The queries queries must be concatenated by a semicolon.
+ *
+ * @param      $mysqli
+ * @param      $dbTable
+ * @param      $query
+ * @param int  $queriesCount
+ * @param null $logger
+ */
 function runMultipleQuery($mysqli, $dbTable, $query, $queriesCount = 0, $logger = null)
 {
     if ($logger) $logger->log("Run update queries on $dbTable. Total queries: $queriesCount");
