@@ -315,19 +315,6 @@ function distance_new($mysqli, $position_percentage, $distance = 0, $raceId = 0)
     global $logger;
     $logger->log('Started: '. __FUNCTION__);
 
-    function rank($value, $array, $order = 0)
-    {
-        array_unique($array);
-
-        if ($order) {
-            sort($array);
-        } else {
-            rsort($array);
-        }
-
-        return array_search($value, $array) + 1;
-    }
-
     if ($raceId == 0) {
         $logger->log("Race id is $raceId. Exit");
         return;
@@ -397,7 +384,7 @@ function distance_new($mysqli, $position_percentage, $distance = 0, $raceId = 0)
 
                                 if ($per > $position_percentage) {
                                     // get rank
-                                    $rank = rank(
+                                    $rank = distanceRank(
                                         $handicap->minihandi,
                                         $numsArray
                                     );
@@ -733,6 +720,21 @@ if (!function_exists('rating_system_new')) {
         $rating = $rankavg + $avgsectional;
 
         return $rating;
+    }
+}
+
+if (!function_exists('distanceRank')) {
+    function distanceRank($value, $array, $order = 0)
+    {
+        array_unique($array);
+
+        if ($order) {
+            sort($array);
+        } else {
+            rsort($array);
+        }
+
+        return array_search($value, $array) + 1;
     }
 }
 
