@@ -29,7 +29,7 @@ function udpatehptime($mysqli, $position_percentage, $limit = 0, $raceId = 0)
     }
     $races = $mysqli->query($q);
 
-    // rank
+    // Rank
     if ($races->num_rows > 0) {
 
         $logger->log('Start calculation of the rank');
@@ -52,6 +52,7 @@ function udpatehptime($mysqli, $position_percentage, $limit = 0, $raceId = 0)
             $logger->log($qDistance, 'debug');
 
             $updateQuery = "";
+            $updateQueryCount = 0;
             while ($distance = $distances->fetch_object()) {
                 $numsArray = get_array_of_handicap(
                     $race->race_id,
@@ -96,17 +97,12 @@ function udpatehptime($mysqli, $position_percentage, $limit = 0, $raceId = 0)
                                         $numsArray
                                     );
 
-                                    $updateQuery = "UPDATE `tbl_hist_results` 
+                                    $updateQuery .= "UPDATE `tbl_hist_results` 
                                                     SET `rank`='$rank' 
                                                     WHERE `race_id`='$race->race_id' 
                                                     AND `race_distance`= '$distance->racedist' 
-                                                    AND `horse_id`='$horse->horse_id'";
-
-                                    if ($mysqli->query($updateQuery)) {
-                                        $logger->log($updateQuery, 'debug');
-                                    } else {
-                                        $logger->log($mysqli->error, 'error');
-                                    }
+                                                    AND `horse_id`='$horse->horse_id';";
+                                    $updateQueryCount++;
                                 }
                             }
                         }
@@ -115,6 +111,14 @@ function udpatehptime($mysqli, $position_percentage, $limit = 0, $raceId = 0)
                 }
             }
             if ($updateQuery) {
+                runMultipleQuery(
+                    $mysqli,
+                    'tbl_hist_results',
+                    $updateQuery,
+                    $updateQueryCount,
+                    $logger
+                );
+
                 $q = "UPDATE `tbl_races` 
                      SET `rank_status`='1' 
                      WHERE `race_id`='$race->race_id'";
@@ -131,7 +135,7 @@ function udpatehptime($mysqli, $position_percentage, $limit = 0, $raceId = 0)
         $logger->log('Rank: 0 results');
     }
 
-    // sectional avg
+    // Sectional avg
     if ($raceId) {
         $q = "SELECT `race_id` FROM `tbl_races` WHERE `race_id`='$raceId'";
     } else {
@@ -171,6 +175,7 @@ function udpatehptime($mysqli, $position_percentage, $limit = 0, $raceId = 0)
             $logger->log($qDistance, 'debug');
 
             $updateQuery = "";
+            $updateQueryCount = 0;
             while ($distance = $distances->fetch_object()) {
                 $numsArray = get_array_of_avgsec($race->race_id,
                     $distance->racedist);
@@ -209,17 +214,12 @@ function udpatehptime($mysqli, $position_percentage, $limit = 0, $raceId = 0)
                                     $row->secavg,
                                     $numsArray
                                 );
-                                $updateQuery = "UPDATE `tbl_hist_results` 
+                                $updateQuery .= "UPDATE `tbl_hist_results` 
                                                  SET `avgsectional`='$avgSectional' 
                                                  WHERE `race_id`='$race->race_id' 
                                                  AND `race_distance`= '$distance->racedist' 
-                                                 AND `horse_id`='$horse->horse_id'";
-
-                                if ($mysqli->query($updateQuery)) {
-                                    $logger->log($updateQuery, 'debug');
-                                } else {
-                                    $logger->log($mysqli->error, 'error');
-                                }
+                                                 AND `horse_id`='$horse->horse_id';";
+                                $updateQueryCount++;
                             }
                         }
                         ++$i;
@@ -227,6 +227,14 @@ function udpatehptime($mysqli, $position_percentage, $limit = 0, $raceId = 0)
                 }
             }
             if ($updateQuery) {
+                runMultipleQuery(
+                    $mysqli,
+                    'tbl_hist_results',
+                    $updateQuery,
+                    $updateQueryCount,
+                    $logger
+                );
+
                 $q = "UPDATE `tbl_races` 
                      SET `sec_status`='1' 
                      WHERE `race_id`='$race->race_id'";
@@ -243,7 +251,7 @@ function udpatehptime($mysqli, $position_percentage, $limit = 0, $raceId = 0)
         $logger->log('Sectional AVG: 0 results');
     }
 
-    // rating
+    // Rating
     if ($raceId) {
         $q = "SELECT * FROM `tbl_hist_results` 
               WHERE `rating`='0' AND `race_id`='$raceId'";
@@ -263,6 +271,8 @@ function udpatehptime($mysqli, $position_percentage, $limit = 0, $raceId = 0)
         $logger->log('Start calculation of the rating');
         if ($raceId) $logger->log('RaceID is ' . $raceId);
 
+        $updateQuery = "";
+        $updateQueryCount = 0;
         while ($row = $results->fetch_object()) {
             $logMessage = 'avgsectional: '.$row->avgsectional.PHP_EOL;
             $logMessage .= 'rank: '.$row->rank.PHP_EOL;
@@ -271,19 +281,27 @@ function udpatehptime($mysqli, $position_percentage, $limit = 0, $raceId = 0)
 
             if ($row->avgsectional != "0" || $row->rank != "0") {
                 $ratePos = $row->avgsectional + $row->rank;
-                $q = "UPDATE `tbl_hist_results` 
-                     SET `rating`='$ratePos' 
-                     WHERE `hist_id`= '$row->hist_id'";
-
-                if ($mysqli->query($q)) {
-                    $logger->log($q, 'debug');
-                } else {
-                    $logger->log($mysqli->error, 'error');
-                }
+                $updateQuery .= "UPDATE `tbl_hist_results` 
+                                 SET `rating` = '$ratePos' 
+                                 WHERE `hist_id` = '$row->hist_id';";
+                $updateQueryCount++;
 
                 $logger->log('Rating done for: '.$row->hist_id, 'debug');
             }
         }
+
+        if ($updateQuery) {
+            runMultipleQuery(
+                $mysqli,
+                'tbl_hist_results',
+                $updateQuery,
+                $updateQueryCount,
+                $logger
+            );
+        } else {
+            $logger->log('No updates for "tbl_hist_results"');
+        }
+
         $logger->log('Finish calculation of the rating');
     } else {
         $logger->log('Rating: 0 results');
@@ -318,7 +336,11 @@ function distance_new($mysqli, $position_percentage, $distance = 0, $raceId = 0)
     $q = "SELECT `race_id` FROM `tbl_races` 
              WHERE `race_id`='$raceId' ORDER by `race_id` ASC";
     $races = $mysqli->query($q);
+    if (!$races) {
+        $logger->log($mysqli->error, 'error');
+    }
 
+    // Rank
     if ($races->num_rows > 0) {
         while ($race = $races->fetch_object()) {
             $horsesCount = get_rows(
@@ -327,7 +349,7 @@ function distance_new($mysqli, $position_percentage, $distance = 0, $raceId = 0)
                  AND `horse_fxodds`!='0'"
             );
 
-            $logger->log(__FUNCTION__ . ' | Start calculation of the Rank');
+            $logger->log('Start calculation of the Rank');
             if ($raceId) $logger->log('RaceID is ' . $raceId);
 
             $distancesResult = $mysqli->query(
@@ -339,6 +361,7 @@ function distance_new($mysqli, $position_percentage, $distance = 0, $raceId = 0)
             );
 
             $updateQuery = "";
+            $updateQueriesCount = 0;
             while($distance = $distancesResult->fetch_object()) {
                 $numsArray = get_array_of_handicap($race->race_id, $distance->racedist);
                 $cnt = count($numsArray);
@@ -384,18 +407,13 @@ function distance_new($mysqli, $position_percentage, $distance = 0, $raceId = 0)
                                         $logger->log($horseDetails->horse_name." rank: $rank");
                                     }
 
-                                    $updateQuery =
+                                    $updateQuery .=
                                         "UPDATE `tbl_hist_results` 
                                          SET `rank`='$rank' 
                                          WHERE `race_id`='$race->race_id' 
                                          AND `race_distance`= '$distance->racedist' 
                                          AND `horse_id`='$horseHist->horse_id'";
-
-                                    if ($mysqli->query($updateQuery)) {
-                                        $logger->log($updateQuery, 'debug');
-                                    } else {
-                                        $logger->log($mysqli->error, 'error');
-                                    }
+                                    $updateQueriesCount++;
                                 }
                             }
                         }
@@ -404,6 +422,14 @@ function distance_new($mysqli, $position_percentage, $distance = 0, $raceId = 0)
                 }
             }
             if($updateQuery) {
+                runMultipleQuery(
+                    $mysqli,
+                    'tbl_hist_results',
+                    $updateQuery,
+                    $updateQueriesCount,
+                    $logger
+                );
+
                 $q = "UPDATE `tbl_races` 
                       SET `rank_status`='1' 
                       WHERE `race_id`='$race->race_id'";
@@ -419,6 +445,7 @@ function distance_new($mysqli, $position_percentage, $distance = 0, $raceId = 0)
     } else {
         $logger->log('Rating: 0 results');
     }
+
     $logger->log('Finished: '. __FUNCTION__);
 }
 

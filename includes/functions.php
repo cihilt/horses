@@ -63,6 +63,25 @@ function arrayGet(array $data, $key, $defaultValue = null)
 {
     return (isset($data[$key])) ? $data[$key] : $defaultValue;
 }
+
+function runMultipleQuery($mysqli, $dbTable, $query, $queriesCount = 0, $logger = null)
+{
+    if ($logger) $logger->log("Run update queries on $dbTable. Total queries: $queriesCount");
+
+    $multipleUpdate = $mysqli->multi_query($query);
+    if (!$multipleUpdate) {
+        if ($logger) $logger->log($mysqli->error, 'error');
+        if ($logger) $logger->log($query, 'debug');
+    } else {
+        while ($mysqli->next_result()) // flush multi_queries
+        {
+            if ( ! $mysqli->more_results()) {
+                break;
+            }
+        }
+        if ($logger) $logger->log($query, 'debug');
+    }
+}
 /*	
 	function get_user_details($user_name) {
 		global $mysqli;
