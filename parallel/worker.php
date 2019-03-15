@@ -12,7 +12,6 @@ ini_set('display_errors', DISPLAY_ERRORS);
 
 // logger
 $wLogger = new logger(APP_ROOT . '/logs/'. basename(__FILE__) .'.log', 'debug');
-$logPrefix = 'ProcID ' . $procId . ' ---> ';
 
 // request data
 $data = (isset($argv[1])) ? $argv[1] : [];
