@@ -131,9 +131,12 @@ class Multithread
         // Cycle through commands
         while (count($this->commands) > 0) {
             foreach ($this->commands as $key => $command) {
+                if (!isset($this->output[$key])) $this->output[$key] = '';
+                if (!isset($this->error[$key])) $this->error[$key] = '';
+
                 // Get the output and the errors
-                @$this->output[$key] .= $this->thread[$key]->listen();
-                @$this->error[$key] .= $this->thread[$key]->getError();
+                $this->output[$key] .= $this->thread[$key]->listen();
+                $this->error[$key] .= $this->thread[$key]->getError();
 
                 // Check if command is still active
                 if ($this->thread[$key]->isActive()) {
