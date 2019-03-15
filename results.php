@@ -13,7 +13,7 @@ if (isset($_POST['date']) && !empty($_POST['date'])) {
 
     include('includes/config.php');
     try {
-        $dbh = new PDO('mysql:host='.$servername.';dbname='.$dbname, $username, $password);
+        $dbh = new PDO('mysql:host='.$dbServer.';dbname='.$dbName, $dbUser, $dbPassword);
     } catch (PDOException $e) {
         print "Error!: " . $e->getMessage() . "<br/>";
         die();

@@ -15,7 +15,7 @@ include_once('simple_html_dom.php');
 
 include('includes/config.php');
 try {
-    $dbh = new PDO('mysql:host='.$servername.';dbname='.$dbname, $username, $password);
+    $dbh = new PDO('mysql:host='.$dbServer.';dbname='.$dbName, $dbUser, $dbPassword);
 } catch (PDOException $e) {
     print "Error!: " . $e->getMessage() . "<br/>";
     die();

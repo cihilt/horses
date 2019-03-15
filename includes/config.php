@@ -1,26 +1,36 @@
 <?php
-date_default_timezone_set("UTC");
+define('APP_ROOT', realpath(__DIR__ . '/..'));
+require_once APP_ROOT . '/vendor/autoload.php';
 
-// @todo move sensitive data to .env
-$servername = "localhost";
-$username = "bettinga";
-$password = "Newcar888!!";
-$dbname = "bettinganewdb";
+// Load environment variables
+$env = Dotenv\Dotenv::create(APP_ROOT);
+$env->load();
 
-// Create connection
-$mysqli = new mysqli($servername, $username, $password, $dbname);
+// App constants
+define('WORKERS_COUNT', getenv('WORKERS_COUNT'));
+define('ERROR_REPORTING', getenv('ERROR_REPORTING'));
+define('DISPLAY_ERRORS', getenv('DISPLAY_ERRORS'));
+define('MODIFIER', getenv('MODIFIER'));
+define('TIMEZONE', getenv('TIMEZONE'));
+define('LOG_LEVEL', getenv('LOG_LEVEL'));
+
+// Error reporting
+error_reporting(ERROR_REPORTING);
+ini_set('display_errors', DISPLAY_ERRORS);
 
 // Logging
 require_once 'logging.php';
-define('LOG_LEVEL', 'info'); // @todo store in .env
 $logger = new logger('logs/main.log', LOG_LEVEL);
 
-define('APP_ROOT', realpath(__DIR__ . '/..'));
-define('WORKERS_COUNT', 2);
-define('ERROR_REPORTING', E_ALL);
-define('DISPLAY_ERRORS', 1);
-define('MODIFIER', '0.025');
+// Database connection
+$dbServer = getenv('DB_SERVER');
+$dbName = getenv('DB_NAME');
+$dbUser = getenv('DB_USER');
+$dbPassword = getenv('DB_PASSWORD');
+$mysqli = new mysqli($dbServer, $dbUser, $dbPassword, $dbName);
+if ($mysqli->connect_error) {
+    $logger->log("Database connection error ({$mysqli->connect_errno}): {$mysqli->connect_error}", 'error');
+    die('Database connection error (' . $mysqli->connect_errno . ')');
+}
 
-// Turn on debugging
-error_reporting(ERROR_REPORTING);
-ini_set('display_errors', DISPLAY_ERRORS);
+date_default_timezone_set(TIMEZONE);
