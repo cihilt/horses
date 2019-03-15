@@ -32,24 +32,26 @@ $offsetStart = arrayGet($data, 'offset_start', '');
 $offsetLimit = arrayGet($data, 'offset_limit', '');
 
 // Prepare the selected function
-$args = [$mysqli, $positionPercentage];
+$algArgs = [$mysqli, $positionPercentage];
 if ($algTitle == 'udpatehptime') {
-    $args[] = $limit;
+    $algArgs[] = $limit;
 } elseif ($algTitle == 'distance_new') {
-    $args[] = $distance;
+    $algArgs[] = $distance;
 }
 
 // Run the algorithm
-$wLogger->log('Worker started: ' . $procId);
 $qLimit = ($offsetStart || $offsetLimit) ? "LIMIT $offsetStart, $offsetLimit" : '';
-$q = "SELECT * FROM tbl_races $qLimit";
+$q = "SELECT * FROM tbl_races ORDER BY race_id ASC $qLimit ";
 $races = $mysqli->query($q);
 $i = 0;
+
+$wLogger->log('Worker started: ' . $procId);
+$wLogger->log('Offset: ' . $qLimit);
 while ($race = $races->fetch_object()) {
-    $args[] = $race->race_id;
-    call_user_func_array($algTitle, $args);
+    $algArgs['raceId'] = $race->race_id;
+    $wLogger->log("Run the function with params: mysqli, $algArgs[1], $algArgs[2], {$algArgs['raceId']}");
+    call_user_func_array($algTitle, $algArgs);
     $i++;
 }
 $wLogger->log('Worker finished: ' . $procId);
 $wLogger->log('Races count: ' . $i);
-$wLogger->log('Offset: ' . $qLimit);
