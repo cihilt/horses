@@ -48,13 +48,16 @@ if(isset($_POST['run'])) {
     $q = "SELECT COUNT(race_id) FROM tbl_races";
     $totalResults = $mysqli->query($q);
     $totalRows = (int) $totalResults->fetch_row()[0];
-    $rawChunk = $totalRows / $workersCount;
     $chunk = floor($totalRows / $workersCount);
+    $rawChunk = ceil($totalRows / $workersCount);
 
     // create threads
     $offsetStart = $offsetLimit = 0;
     for ($i = 0; $i < $workersCount; $i++) {
-        $offsetLimit += ($i < $workersCount) ? $chunk : ceil($rawChunk);
+        $offsetLimit = $chunk;
+        if ($i + 1 >= $workersCount) {
+            $offsetLimit = $rawChunk;
+        }
 
         $workersData['proc_id'] = $i + 1;
         $workersData['offset_start'] = $offsetStart;
