@@ -82,8 +82,7 @@ CREATE TABLE `tbl_hist_results` (
   `handicap` decimal(3,2) NOT NULL,
   `rating` float NOT NULL,
   `rank` decimal(3,2) NOT NULL,
-  PRIMARY KEY (`hist_id`),
-  KEY `race_id` (`race_id`)
+  PRIMARY KEY (`hist_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `tbl_algorithm` (
@@ -118,6 +117,14 @@ ALTER TABLE `results`
 ALTER TABLE `horses`
   ADD PRIMARY KEY (`horse_id`),
   MODIFY `horse_id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `tbl_hist_results`
+  ADD KEY `race_id` (`race_id`),
+  ADD KEY `horse_id` (`horse_id`);
+
+ALTER TABLE `tbl_temp_hraces`
+  ADD KEY `race_id` (`race_id`),
+  ADD KEY `horse_id` (`horse_id`);
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
