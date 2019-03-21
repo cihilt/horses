@@ -32,7 +32,7 @@ $offsetLimit = arrayGet($data, 'offset_limit', '');
 
 // Prepare the selected function
 $algArgs = [$mysqli, $positionPercentage];
-if ($algTitle == 'udpatehptime') {
+if ($algTitle == 'updatehptime') {
     $algArgs[] = $limit;
 } elseif ($algTitle == 'distance_new') {
     $algArgs[] = $distance;

@@ -4,7 +4,7 @@ if (!isset($logger)) {
     $logger = new logger();
 }
 
-function udpatehptime($mysqli, $position_percentage, $limit = 0, $raceId = 0)
+function updatehptime($mysqli, $position_percentage, $limit = 0, $raceId = 0)
 {
     global $logger;
     $logger->log('Started: '. __FUNCTION__);
