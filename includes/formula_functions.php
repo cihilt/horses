@@ -230,6 +230,29 @@ function updatehptime($mysqli, $position_percentage, $limit = 0, $raceId = 0)
         $logger->log('Sectional AVG: 0 results');
     }
 
+    // Execute update queries
+    if ($updateQuery) {
+        runMultipleQuery(
+            $mysqli,
+            'tbl_hist_results',
+            $updateQuery,
+            $updateQueryCount,
+            $logger
+        );
+        runMultipleQuery(
+            $mysqli,
+            'tbl_races',
+            $updateQueryRaces,
+            $updateQueryRacesCount,
+            $logger
+        );
+
+        $updateQuery = "";
+        $updateQueryCount = 0;
+    } else {
+        $logger->log('No updates for "tbl_hist_results"');
+    }
+
     // Rating
     if ($raceId) {
         $q = "SELECT * FROM `tbl_hist_results` 
@@ -273,13 +296,6 @@ function updatehptime($mysqli, $position_percentage, $limit = 0, $raceId = 0)
                 'tbl_hist_results',
                 $updateQuery,
                 $updateQueryCount,
-                $logger
-            );
-            runMultipleQuery(
-                $mysqli,
-                'tbl_races',
-                $updateQueryRaces,
-                $updateQueryRacesCount,
                 $logger
             );
         } else {
