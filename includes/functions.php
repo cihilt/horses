@@ -90,6 +90,10 @@ function runMultipleQuery($mysqli, $dbTable, $query, $queriesCount = 0, $logger 
 {
     if ($logger) $logger->log("Run update queries on $dbTable. Total queries: $queriesCount");
 
+    if (empty($query)) {
+        if ($logger) $logger->log("Query is empty", 'debug');
+    }
+
     $multipleUpdate = $mysqli->multi_query($query);
     if (!$multipleUpdate) {
         if ($logger) $logger->log($mysqli->error, 'error');
