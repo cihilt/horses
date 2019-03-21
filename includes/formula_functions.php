@@ -76,6 +76,8 @@ function udpatehptime($mysqli, $position_percentage, $limit = 0, $raceId = 0)
                          WHERE `race_id`='$race->race_id' 
                          AND `horse_id`='$horse->horse_id'"
                     );
+
+                    if ($oddsResult->num_rows === 0) continue;
                     $odds = $oddsResult->fetch_object();
 
                     if (isset($odds->horse_fxodds)
@@ -183,8 +185,9 @@ function udpatehptime($mysqli, $position_percentage, $limit = 0, $raceId = 0)
                          WHERE `race_id`='$race->race_id' 
                          AND `horse_id`='$horse->horse_id'"
                     );
-                    $odds = $oddsResult->fetch_object();
+                    if ($oddsResult->num_rows === 0) continue;
 
+                    $odds = $oddsResult->fetch_object();
                     if ($odds->horse_fxodds != "0") {
                         $handicapResults = $mysqli->query(
                             "SELECT MAX(avgsec) AS secavg 
