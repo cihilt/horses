@@ -65,6 +65,9 @@ Start by selecting the raceID. <br />If you want to reset all, beware that this 
 <a href="./updatehptime.php?limit=50000&do=resetrank'.$race_id_var.'">Reset Rank</a> | 
 <a href="./updatehptime.php?limit=50000&do=resetrating'.$race_id_var.'">Reset Rating</a><br /> 
 
+<br />Reset the Rankings in one go<br />
+<a href="./updatehptime.php?do=reset">Rank + Rating + Sectional Average + Sectional + avgsec</a><br>
+
 <br />Apply Individual formulas<br />
 <a href="./updatehptime.php?limit=50000&do=sectional'.$race_id_var.'">Sectional</a> | 
 <a href="./updatehptime.php?limit=50000&do=handicap'.$race_id_var.'">Handicap</a> | 
@@ -80,6 +83,14 @@ Start by selecting the raceID. <br />If you want to reset all, beware that this 
 
 } else {
     $action = $_GET['do'];
+
+    if ($action === 'reset') {
+        if (resetRankings($mysqli, $logger)) {
+            echo 'Rankings were reset. <a href="./updatehptime.php">Click Here</a> to go back';
+        } else {
+            echo 'Error while reset. Please review logs for details';
+        }
+    }
 
     if ($action == 'resetsectional') {
         $sqlseq
