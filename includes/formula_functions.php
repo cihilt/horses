@@ -738,3 +738,50 @@ if (!function_exists('distanceRank')) {
     }
 }
 
+/**
+ * Reset rankings: rank, rating, sectional, avgsectional, avgsec
+ *
+ * @param resource $mysqli
+ * @param bool $rank
+ * @param bool $rating
+ * @param bool $sectional
+ * @param bool $avgSectional
+ * @param bool $avgSec
+ * @param logger $logger
+ *
+ * @return bool False in a case if something went wrong
+ */
+function resetRankings(
+    $mysqli,
+    $rank = true,
+    $rating = true,
+    $sectional = true,
+    $avgSectional = true,
+    $avgSec = true,
+    $logger = null
+)
+{
+    $query = "UPDATE tbl_hist_results SET ";
+    $expressions = [
+        ((bool)$rank) ? 'rank = 0, ' : '',
+        ((bool)$rating) ? 'rating = 0, ' : '',
+        ((bool)$avgSectional) ? 'avgsectional = 0, ' : '',
+        ((bool)$avgSec) ? 'avgsec = 0, ' : '',
+        ((bool)$sectional) ? 'sectional = 0, ': '',
+    ];
+
+    foreach ($expressions as $exp) {
+        $query .= $exp;
+    }
+
+    $query = substr($query, 0, - 2);
+    $res = $mysqli->query($query);
+    if (!$res) {
+        if ($logger !== null) $logger->log(
+            'Error on reset ranking: ' . $mysqli->error);
+        return false;
+    }
+
+    return true;
+}
+
