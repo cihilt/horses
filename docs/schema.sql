@@ -62,6 +62,36 @@ CREATE TABLE `results` (
   `distance` int(7) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+CREATE TABLE `tbl_hist_results` (
+  `hist_id` int(11) NOT NULL AUTO_INCREMENT,
+  `race_id` int(11) NOT NULL,
+  `race_date` varchar(45) NOT NULL,
+  `race_distance` varchar(45) NOT NULL,
+  `horse_id` int(11) DEFAULT NULL,
+  `h_num` varchar(5) DEFAULT NULL,
+  `horse_position` int(11) DEFAULT NULL,
+  `horse_weight` varchar(45) NOT NULL,
+  `horse_fixed_odds` varchar(45) DEFAULT NULL,
+  `horse_h2h` varchar(45) DEFAULT NULL,
+  `prize` varchar(45) NOT NULL,
+  `race_time` varchar(45) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL DEFAULT '',
+  `length` decimal(3,1) NOT NULL,
+  `sectional` varchar(45) NOT NULL,
+  `avgsec` double NOT NULL DEFAULT '0',
+  `avgsectional` decimal(3,2) NOT NULL DEFAULT '0.00',
+  `handicap` decimal(3,2) NOT NULL,
+  `rating` float NOT NULL,
+  `rank` decimal(3,2) NOT NULL,
+  PRIMARY KEY (`hist_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE `tbl_algorithm` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `title` varchar(50) NOT NULL DEFAULT '',
+  `is_default` tinyint(11) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+
 ALTER TABLE `data`
   ADD PRIMARY KEY (`id`),
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -86,7 +116,15 @@ ALTER TABLE `results`
 
 ALTER TABLE `horses`
   ADD PRIMARY KEY (`horse_id`),
-  MODIFY `horse_id` int(11) NOT NULL AUTO_INCREMENT;  
+  MODIFY `horse_id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `tbl_hist_results`
+  ADD KEY `race_id` (`race_id`),
+  ADD KEY `horse_id` (`horse_id`);
+
+ALTER TABLE `tbl_temp_hraces`
+  ADD KEY `race_id` (`race_id`),
+  ADD KEY `horse_id` (`horse_id`);
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
