@@ -80,11 +80,13 @@ function arrayGet(array $data, $key, $defaultValue = null)
  *
  * The queries queries must be concatenated by a semicolon.
  *
- * @param      $mysqli
- * @param      $dbTable
- * @param      $query
+ * @param resource $mysqli
+ * @param string $dbTable
+ * @param string $query
  * @param int  $queriesCount
  * @param null $logger
+ *
+ * @return bool False in a case of error
  */
 function runMultipleQuery($mysqli, $dbTable, $query, $queriesCount = 0, $logger = null)
 {
@@ -98,6 +100,8 @@ function runMultipleQuery($mysqli, $dbTable, $query, $queriesCount = 0, $logger 
     if (!$multipleUpdate) {
         if ($logger) $logger->log($mysqli->error, 'error');
         if ($logger) $logger->log($query, 'debug');
+
+        return false;
     } else {
         while ($mysqli->next_result()) // flush multi_queries
         {
@@ -107,6 +111,8 @@ function runMultipleQuery($mysqli, $dbTable, $query, $queriesCount = 0, $logger 
         }
         if ($logger) $logger->log($query, 'debug');
     }
+
+    return true;
 }
 /*	
 	function get_user_details($user_name) {
