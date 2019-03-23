@@ -8,7 +8,7 @@ $raceId = $race_id_var_get;
 $updateLimit = (!empty($_POST['limit'])) ? intval($_POST['limit']) : $limit;
 
 // Save default algorithm
-if (isset($_POST['default_algorithm'])) {
+if (isset($_POST['save_default_algorithm'])) {
     if (!empty($_POST['race_id'])) {
         $raceId = intval($_POST['race_id']);
     }
@@ -45,11 +45,11 @@ while ($alg = $algs->fetch_object()) {
 }
 
 // Applying the algorithm
-if (isset($_POST['default_algorithm'])) {
-    $logger->setLevel('debug');
+if (isset($_POST['save_default_algorithm'])) {
+    $logger->setLevel('info');
 
     $selectedAlgorithm = $algorithms[$defaultAlgId];
-    if ($selectedAlgorithm == 'udpatehptime') {
+    if ($selectedAlgorithm == 'updatehptime') {
         updatehptime($mysqli, $position_percentage, $updateLimit, $raceId);
     } elseif ($selectedAlgorithm == 'distance_new') {
         distance_new($mysqli, $position_percentage, $distance, $raceId);
@@ -86,6 +86,6 @@ if (isset($_POST['default_algorithm'])) {
         <option></option>
         <?= $algorithmOptions ?>
     </select>
-    <input type="submit" value="Save">
+    <input type="submit" value="Save" name="save_default_algorithm">
 </form>
 
