@@ -72,6 +72,11 @@ Start by selecting the raceID. <br />If you want to reset all, beware that this 
     require_once 'includes/default_algorithm.php';
     ?>
 
+    <h3>Remove meetings by date</h3>
+    <?php
+    require_once 'includes/remove_meeting.php';
+    ?>
+
     <h3>Remove selected race</h3>
     <?php
     require_once 'includes/remove_race.php';
