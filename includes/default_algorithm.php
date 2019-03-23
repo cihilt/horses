@@ -4,7 +4,7 @@ $distance = 0;
 $errorMessage = '';
 $successMessage = '';
 $algorithmOptions = '';
-$raceId = $race_id_var_get;
+$raceId = (isset($_POST['race_id'])) ? $_POST['race_id'] : 0;
 $updateLimit = (!empty($_POST['limit'])) ? intval($_POST['limit']) : $limit;
 
 // Save default algorithm
@@ -86,6 +86,7 @@ if (isset($_POST['save_default_algorithm'])) {
         <option></option>
         <?= $algorithmOptions ?>
     </select>
+    <input type="hidden" name="race_id" value="<?= $raceId ?>">
     <input type="submit" value="Save" name="save_default_algorithm">
 </form>
 

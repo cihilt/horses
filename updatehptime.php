@@ -1,3 +1,15 @@
+<style>
+    h2 {
+        margin: 20px 0 10px 0;
+    }
+    h3 {
+        margin: 25px 0 15px 0;
+    }
+    h4 {
+        margin: 15px 0 10px 0;
+    }
+</style>
+
 <?php
 include('includes/config.php');
 include('includes/functions.php');
@@ -42,6 +54,7 @@ Start by selecting the raceID. <br />If you want to reset all, beware that this 
     echo '<form method="post" id="race_form">';
     echo '<select name="race_id" onchange="document.getElementById(\'race_form\').submit();">';
     echo '<option value="">Select race_id</option>';
+
     if ($result_races->num_rows > 0) {
         while ($result_race = $result_races->fetch_object()) {
             echo '<option value="'.$result_race->race_id.'"'.($race_id_var_int
@@ -49,38 +62,42 @@ Start by selecting the raceID. <br />If you want to reset all, beware that this 
                 .'>'.$result_race->race_id.'</option>';
         }
     }
+    ?>
+    </select>
+    <a href="" style="color: black;">Select RaceID</a></br>
+    </form>
 
-//    echo '<a href="" style="color: black;">Select RaceID</a>';
-    echo '</select>';
-    echo '<a href="" style="color: black;">Select RaceID</a>';
-    echo '</br>';
-
-    echo '<h3>Default Algorithm</h3>';
+    <h3>Default Algorithm</h3>
+    <?php
     require_once 'includes/default_algorithm.php';
+    ?>
+
+    <h3>Remove a race</h3>
+    <?php
+    require_once 'includes/remove_race.php';
 
     echo '
-<br />Reset Individual formulas<br />
-<a href="./updatehptime.php?limit=50000&do=resethandicap'.$race_id_var.'">Reset Handicap</a> | 
-<a href="./updatehptime.php?limit=50000&do=resetsectional'.$race_id_var.'">Reset Sectional</a> |  
-<a href="./updatehptime.php?limit=50000&do=resetrank'.$race_id_var.'">Reset Rank</a> | 
-<a href="./updatehptime.php?limit=50000&do=resetrating'.$race_id_var.'">Reset Rating</a><br /> 
+        <h3>Reset</h3>
+        <h4>Individual formulas</h4>
+        <a href="./updatehptime.php?limit=50000&do=resethandicap'.$race_id_var.'">Reset Handicap</a> | 
+        <a href="./updatehptime.php?limit=50000&do=resetsectional'.$race_id_var.'">Reset Sectional</a> |  
+        <a href="./updatehptime.php?limit=50000&do=resetrank'.$race_id_var.'">Reset Rank</a> | 
+        <a href="./updatehptime.php?limit=50000&do=resetrating'.$race_id_var.'">Reset Rating</a><br /> 
+        
+        <h4>Reset in one go</h4>
+        <a href="./updatehptime.php?do=reset">Rank + Rating + Sectional Average + Sectional + avgsec</a><br>
+        
+        <h3>Apply Individual formulas</h3>
+        <a href="./updatehptime.php?limit=50000&do=sectional'.$race_id_var.'">Sectional</a> | 
+        <a href="./updatehptime.php?limit=50000&do=handicap'.$race_id_var.'">Handicap</a> | 
+        <a href="./updatehptime.php?limit=50000&do=rank'.$race_id_var.'">Rank</a> | 
+        <a href="./updatehptime.php?limit=50000&do=sectionalavg'.$race_id_var.'">Sectional Average</a> | 
+        <a href="./updatehptime.php?limit=50000&do=datarating'.$race_id_var.'">Rating</a><br />
+        
+        <h4>Setup the Rankings in one go</h4>
+        <a href="./updatehptime.php?limit=50000&do=ranksectionalavgrating'.$race_id_var.'">Rank + Sectional Average + Rating</a></center>';
 
-<br />Reset the Rankings in one go<br />
-<a href="./updatehptime.php?do=reset">Rank + Rating + Sectional Average + Sectional + avgsec</a><br>
-
-<br />Apply Individual formulas<br />
-<a href="./updatehptime.php?limit=50000&do=sectional'.$race_id_var.'">Sectional</a> | 
-<a href="./updatehptime.php?limit=50000&do=handicap'.$race_id_var.'">Handicap</a> | 
-<a href="./updatehptime.php?limit=50000&do=rank'.$race_id_var.'">Rank</a> | 
-<a href="./updatehptime.php?limit=50000&do=sectionalavg'.$race_id_var.'">Sectional Average</a> | 
-<a href="./updatehptime.php?limit=50000&do=datarating'.$race_id_var.'">Rating</a><br />
-
-<br />Setup the Rankings in one go<br />
-<a href="./updatehptime.php?limit=50000&do=ranksectionalavgrating'.$race_id_var.'">Rank + Sectional Average + Rating</a></center>
-';
-
-    exit();
-
+    exit;
 } else {
     $action = $_GET['do'];
 
