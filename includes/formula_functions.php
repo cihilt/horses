@@ -399,7 +399,7 @@ function distance_new($mysqli, $position_percentage, $distance = 0, $raceId = 0)
                                          SET `rank`='$rank' 
                                          WHERE `race_id`='$race->race_id' 
                                          AND `race_distance`= '$distance->racedist' 
-                                         AND `horse_id`='$horseHist->horse_id'";
+                                         AND `horse_id`='$horseHist->horse_id';";
                                     $updateQueriesCount++;
                                 }
                             }
