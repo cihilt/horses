@@ -72,7 +72,7 @@ Start by selecting the raceID. <br />If you want to reset all, beware that this 
     require_once 'includes/default_algorithm.php';
     ?>
 
-    <h3>Remove a race</h3>
+    <h3>Remove selected race</h3>
     <?php
     require_once 'includes/remove_race.php';
 
