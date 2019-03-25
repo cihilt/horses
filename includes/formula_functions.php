@@ -441,16 +441,20 @@ function distance_new($mysqli, $position_percentage, $distance = 0, $raceId = 0)
  *
  * @param resource $mysqli
  * @param string $offset Example: "0, 100", or "5", or just "0"
+ * @param array $histIds Array of hist_results ids
  *
  * @return bool False in case of an error
  */
-function resetHandicap($mysqli, $offset = null)
+function resetHandicap($mysqli, $offset = null, array $histIds = [])
 {
     global $logger;
     $logger->log('Started: '. __FUNCTION__);
 
     // Handicap Started
-    if($offset === null) {
+    if ($histIds) {
+        $histIdStr = implode(', ', $histIds);
+        $sql = "SELECT * FROM `tbl_hist_results` WHERE `hist_id` in ($histIdStr)";
+    } elseif ($offset === null) {
         $sql = "UPDATE `tbl_hist_results` SET `handicap`='0'";
         $res = $mysqli->query($sql);
         if (!$res) {
