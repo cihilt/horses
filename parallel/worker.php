@@ -36,6 +36,9 @@ if ($algTitle == 'updatehptime') {
     $algArgs[] = $limit;
 } elseif ($algTitle == 'distance_new') {
     $algArgs[] = $distance;
+} else {
+    $wLogger->log('No algorithm was provided: ' . $procId);
+    exit;
 }
 
 // Run the algorithm
