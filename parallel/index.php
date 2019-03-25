@@ -11,6 +11,7 @@ $limit = 0;
 $distance = 0;
 $workersPool = [];
 $execTime = null;
+$resetHandicap = true;
 $workersCount = WORKERS_COUNT;
 // position percentage
 $sqlFormulas = "SELECT `position_percentage` 
@@ -46,33 +47,36 @@ if(isset($_POST['run'])) {
     ];
 
     # Handicap workers
+    if (isset($_POST['reset_handicap'])) {
+        // distribute records for workers
+        $q = "SELECT COUNT(hist_id) FROM tbl_hist_results";
+        $totalResults = $mysqli->query($q);
+        $totalRows = (int)$totalResults->fetch_row()[0];
+        $chunk = floor($totalRows / $workersCount);
+        $rawChunk = ceil($totalRows / $workersCount);
+        // create handicap threads
+        $offsetStart = $offsetLimit = 0;
+        for ($i = 0; $i < $workersCount; $i++) {
+            $offsetLimit = $chunk;
+            if ($i + 1 >= $workersCount) {
+                $offsetLimit = $rawChunk;
+            }
+            $data = base64_encode(json_encode([
+                'proc_id'      => $i + 1,
+                'offset_start' => $offsetStart,
+                'offset_limit' => $offsetLimit,
+            ]));
 
-    // distribute records for workers
-    $q = "SELECT COUNT(hist_id) FROM tbl_hist_results";
-    $totalResults = $mysqli->query($q);
-    $totalRows = (int) $totalResults->fetch_row()[0];
-    $chunk = floor($totalRows / $workersCount);
-    $rawChunk = ceil($totalRows / $workersCount);
-    // create handicap threads
-    $offsetStart = $offsetLimit = 0;
-    for ($i = 0; $i < $workersCount; $i++) {
-        $offsetLimit = $chunk;
-        if ($i + 1 >= $workersCount) {
-            $offsetLimit = $rawChunk;
+            $workersPool[] = 'php worker_handicap.php '.$data;
+            $offsetStart += $chunk;
         }
-        $data = base64_encode(json_encode([
-            'proc_id' => $i + 1,
-            'offset_start' => $offsetStart,
-            'offset_limit' => $offsetLimit,
-        ]));
-
-        $workersPool[] = 'php worker_handicap.php ' . $data;
-        $offsetStart += $chunk;
+        // run handicap threads
+        $threads = new Multithread($workersPool);
+        $threads->run();
+        $workersPool = [];
+    } else {
+        $resetHandicap = false;
     }
-    // run handicap threads
-    $threads = new Multithread($workersPool);
-    $threads->run();
-    $workersPool = [];
 
     # Algorithm workers
 
@@ -131,6 +135,11 @@ while ($alg = $algResults->fetch_object()) {
             <option></option>
             <?= $algorithmOptions ?>
         </select>
+    </div>
+
+    <div class="label">Handicap:</div>
+    <div>
+        <input type="checkbox" <?= ($resetHandicap) ? 'checked' : ''?> name="reset_handicap" id="reset_handicap"> <label for="reset_handicap">reset</label>
     </div>
 
     <div class="label">Distance</div>
