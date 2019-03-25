@@ -436,6 +436,89 @@ function distance_new($mysqli, $position_percentage, $distance = 0, $raceId = 0)
     $logger->log('Finished: '. __FUNCTION__);
 }
 
+/**
+ * Update handicap
+ *
+ * @param resource $mysqli
+ * @param string $offset Example: "0, 100", or "5", or just "0"
+ *
+ * @return bool False in case of an error
+ */
+function resetHandicap($mysqli, $offset = null)
+{
+    global $logger;
+    $logger->log('Started: '. __FUNCTION__);
+
+    // Handicap Started
+    if($offset === null) {
+        $sql = "UPDATE `tbl_hist_results` SET `handicap`='0'";
+        $res = $mysqli->query($sql);
+        if (!$res) {
+            $logger->log('MySQL error: ' . $mysqli->error, 'error');
+        }
+
+        $sql = "SELECT * FROM `tbl_hist_results` WHERE `handicap`='0'";
+    } else {
+        $sql = "SELECT * FROM `tbl_hist_results` 
+                ORDER BY hist_id ASC LIMIT $offset";
+    }
+    $logger->log('Gather data for update: ' . $sql, 'debug');
+    $resHandicap = $mysqli->query($sql);
+
+    if ($resHandicap->num_rows > 0) {
+        $qHandicapHist = '';
+        $qHandicapHistCount = '';
+        while ($handicap = $resHandicap->fetch_object()) {
+            $raceDetails = race_details($handicap->race_id);
+            $distance = round($raceDetails->race_distance / 100);
+            $distance = $distance * 100;
+            $newHandicap = newvalue(
+                $handicap->length,
+                $raceDetails->race_distance,
+                $distance,
+                $handicap->horse_position,
+                number_format($handicap->race_time, 2)
+            );
+            $newHandicap = number_format($newHandicap, 3);
+
+            $id = $handicap->hist_id;
+            $qHandicapHist .= "UPDATE `tbl_hist_results` 
+                               SET `handicap`='$newHandicap' 
+                               WHERE hist_id = '$id';";
+            $qHandicapHistCount++;
+
+            if ($qHandicapHistCount >= 500) {
+                runMultipleQuery(
+                    $mysqli,
+                    'tbl_hist_results',
+                    $qHandicapHist,
+                    $qHandicapHistCount,
+                    $logger
+                );
+                $qHandicapHist = '';
+                $qHandicapHistCount = 0;
+            }
+        }
+        if ($qHandicapHist) {
+            $updated = runMultipleQuery(
+                $mysqli,
+                'tbl_hist_results',
+                $qHandicapHist,
+                $qHandicapHistCount,
+                $logger
+            );
+            if (!$updated) {
+                return false;
+            }
+        }
+    } else {
+        $logger->log('No any data for update', 'debug');
+    }
+    $logger->log('Finished: '. __FUNCTION__);
+
+    return true;
+}
+
 if (!function_exists('get_handisum')) {
     function get_handisum($race_id, $race_dist)
     {
@@ -520,7 +603,7 @@ if (!function_exists('newvalue')) {
             } else {
                 $newtime = 'win_rounded_down';
             }
-            $newtime = $$newtime(
+            $newtime = $newtime(
                 $time,
                 $length,
                 $modifier,
