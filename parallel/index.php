@@ -5,6 +5,7 @@ ini_set('display_errors', '1');
 require_once '../includes/config.php';
 require_once APP_ROOT . '/parallel/Thread.php';
 require_once APP_ROOT . '/includes/functions.php';
+require_once APP_ROOT . '/includes/formula_functions.php';
 
 $limit = 0;
 $distance = 0;
@@ -44,6 +45,37 @@ if(isset($_POST['run'])) {
         "proc_id" => 0
     ];
 
+    # Handicap workers
+
+    // distribute records for workers
+    $q = "SELECT COUNT(hist_id) FROM tbl_hist_results";
+    $totalResults = $mysqli->query($q);
+    $totalRows = (int) $totalResults->fetch_row()[0];
+    $chunk = floor($totalRows / $workersCount);
+    $rawChunk = ceil($totalRows / $workersCount);
+    // create handicap threads
+    $offsetStart = $offsetLimit = 0;
+    for ($i = 0; $i < $workersCount; $i++) {
+        $offsetLimit = $chunk;
+        if ($i + 1 >= $workersCount) {
+            $offsetLimit = $rawChunk;
+        }
+        $data = base64_encode(json_encode([
+            'proc_id' => $i + 1,
+            'offset_start' => $offsetStart,
+            'offset_limit' => $offsetLimit,
+        ]));
+
+        $workersPool[] = 'php worker_handicap.php ' . $data;
+        $offsetStart += $chunk;
+    }
+    // run handicap threads
+    $threads = new Multithread($workersPool);
+    $threads->run();
+    $workersPool = [];
+
+    # Algorithm workers
+
     // distribute races for workers
     $q = "SELECT COUNT(race_id) FROM tbl_races";
     $totalResults = $mysqli->query($q);
@@ -51,7 +83,7 @@ if(isset($_POST['run'])) {
     $chunk = floor($totalRows / $workersCount);
     $rawChunk = ceil($totalRows / $workersCount);
 
-    // create threads
+    // create races threads
     $offsetStart = $offsetLimit = 0;
     for ($i = 0; $i < $workersCount; $i++) {
         $offsetLimit = $chunk;
@@ -68,7 +100,7 @@ if(isset($_POST['run'])) {
         $offsetStart += $chunk;
     }
 
-    // run threads
+    // run races threads
     $threads = new Multithread($workersPool);
     $threads->run();
     $execTime = microtime(true) - $start;
