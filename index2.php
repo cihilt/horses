@@ -1,5 +1,8 @@
 <?php
-date_default_timezone_set('Europe/London');
+include('includes/config.php');
+include( APP_ROOT . '/includes/functions.php');
+include( APP_ROOT . '/includes/formula_functions.php');
+
 class RacingZoneScraper {
     protected $base_url = "https://www.racingzone.com.au";
     protected $_base_url = "/form-guide/";
@@ -14,26 +17,22 @@ class RacingZoneScraper {
     protected $start_date;
     protected $end_date;
     protected $msg = array();
-    public function __construct() {
-        if (!$this->_mysqli) {
-            $this->mysql_connect();
-        }
+    public $addedRacesId = [];
+    public $addedRacesDistance = [];
+    public $addedHistId = [];
+
+    public function __construct($mysqli) {
+        $this->_mysqli = $mysqli;
+
         $this->_cookiefile = dirname(__FILE__) . '/cookies.txt';
         if (file_exists($this->_cookiefile)) {
             unlink($this->_cookiefile);
         }
+
         $this->init();
         $this->_base_url = $this->base_url . $this->_base_url;
     }
-    private function mysql_connect() {
-        include('includes/config.php');
-        if ($mysqli->connect_errno) {
-            echo "Failed to connect to MySQL: (" . $mysqli->connect_errno . ") " . $mysqli->connect_error;
-            exit;
-        }
-        $mysqli->set_charset("utf8");
-        $this->_mysqli = $mysqli;
-    }
+
     private function init() {
         $sql = "INSERT INTO `tbl_hist_results` (`race_id`, `race_date`, `race_distance`, `horse_id`, `h_num`, `horse_position`, `horse_weight`, `horse_fixed_odds`, `horse_h2h`, `prize`, `race_time`, `length`, `sectional`, `handicap`, `rating`, `rank`) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
         $stmt_data;
@@ -64,6 +63,7 @@ class RacingZoneScraper {
         }
         $this->_stmt_horses = $stmt_horses;
     }
+
     public function get_data($start_date = "", $end_date = "") {
         $current_date = new DateTime('today');
         $current_date = $current_date->format("Y-m-d");
@@ -78,6 +78,7 @@ class RacingZoneScraper {
             $this->process_date($date);
         }
     }
+
     private function parse_meetings($content, $date) {
         //file_put_contents("Meetings.htm", $content);
         $race_meetings = array();
@@ -95,6 +96,7 @@ class RacingZoneScraper {
         }
         return $race_meetings;
     }
+
     private function parse_races($content, $meeting_id) {
         $races = array();
         $doc = new DOMDocument();
@@ -115,6 +117,7 @@ class RacingZoneScraper {
         }
         return $races;
     }
+
     private function parse_horses($content, $race, $race_id) {
         $horses = array();
         $doc = new DOMDocument();
@@ -151,15 +154,18 @@ class RacingZoneScraper {
         }
         return $horses;
     }
+
     private function process_date($date) {
         $this->msg['info'][] = $date;
         $content = $this->CallPage($this->_base_url . $date . "/", null, null, $this->_cookiefile);
         $race_meetings = $this->parse_meetings( $content, $date );
+
         foreach ($race_meetings as $meeting) {
             $this->process_meeting($meeting);
         }
         sleep(1);
     }
+
     private function process_meeting($meeting) {
         $this->msg['info'][] = $meeting["place"] . "\t" . $meeting["url"];
 
@@ -167,14 +173,18 @@ class RacingZoneScraper {
 
         $content = $this->CallPage($meeting["url"], null, null, $this->_cookiefile);
         $races = $this->parse_races( $content, $meeting_id );
+
         foreach ($races as $race) {
             $this->process_race($race);
         }
     }
+
     private function process_race($race) {
         $this->msg['info'][] = $race["title"] . "\t" . $race["url"];
 
         $race_id = $this->save_race($race);
+        $this->addedRacesId[] = $race_id;
+        $this->addedRacesDistance[$race_id] = $race['distance'];
 
         if (preg_match('/\/(\d+)-[^\/]+\/\s*$/', $race["url"], $matches)) {
             $race_site_id = $matches[1];
@@ -185,6 +195,7 @@ class RacingZoneScraper {
 			$this->process_horse($horse, $race_site_id);
         }
     }
+
     private function process_horse($horse, $race_site_id) {
         $this->msg['info'][] = $horse["id"];
 
@@ -196,6 +207,7 @@ class RacingZoneScraper {
             $this->save_record($record, $race_site_id);
         }
     }
+
     private function parse_horse($content, $meta) {
         //file_put_contents("Horse.htm", $content);
         $records = array();
@@ -227,6 +239,7 @@ class RacingZoneScraper {
         }
         return $records;
     }
+
     private function convert_to_minutes($time) {
 //    	die($time);
         if (preg_match('/(\d+):/', $time, $matches)) {
@@ -376,6 +389,7 @@ class RacingZoneScraper {
 			echo '<br><br>Track: ' . $record["track_name"] . ' date: ' . $record["race_date"];
 			exit();
         }
+        $this->addedHistId[] = $this->_mysqli->insert_id;
     }
 
     private function save_meeting($meeting) {
@@ -538,7 +552,6 @@ class RacingZoneScraper {
 		}
     }
 
-
     private function calculate_modified_time($original_time, $length) {
         $modified_time = "";
         if ($original_time <= 1.19) {
@@ -548,6 +561,7 @@ class RacingZoneScraper {
         }
         return number_format((float)$modified_time, 2, '.', '');;
     }
+
     private function createDatesRange($start, $end, $format = 'Y-m-d') {
         $start = new DateTime($start);
         $end = new DateTime($end);
@@ -560,6 +574,7 @@ class RacingZoneScraper {
         }
         return $dates;
     }
+
     private function get_post_fields($arrPostFields) {
         $strPostFields = "";
         $postFieldValues = array();
@@ -569,6 +584,7 @@ class RacingZoneScraper {
         $strPostFields = join("&", $postFieldValues);
         return $strPostFields;
     }
+
     private function get_by_xpath($root, $xpath, $elem = null) {
         $result = "";
         $nodeList = $root->query($xpath, $elem);
@@ -577,6 +593,7 @@ class RacingZoneScraper {
         }
         return $result;
     }
+
     private function CallPage($strSubmitURL, $arrPostFields = null, $strReferrer = "", $strCookieFile = "", $strProxy = "", $arrCustomHeaders = null) {
         $header[0] = "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
         //$header[] = "Accept-Encoding: gzip, deflate, br";
@@ -693,11 +710,7 @@ class RacingZoneScraper {
 			return $requ_val;
 		}
 	}
-
-
-
 }
-
 
 //echo $scraper->__process_time2([
 //	'distance' => '833',
@@ -710,24 +723,37 @@ class RacingZoneScraper {
 //]);
 //die();
 
-$scraper = new RacingZoneScraper();
-
+// Scraping
+$scraper = new RacingZoneScraper($mysqli);
 if (isset($_POST['start_date']) && !empty($_POST['start_date']) && isset($_POST['end_date']) && !empty($_POST['end_date'])) {
-
-    $scraper = new RacingZoneScraper();
-
-
     $start_date = $_POST['start_date'];
-
     $end_date = $_POST['end_date'];
-
 
     $scraper->get_data($start_date, $end_date);
 
+    // Apply calculations
+    $sql_formulas = "SELECT `secpoint`,`timer`,`position_percentage` 
+                     FROM `tbl_formulas` WHERE id=1";
+    $result_formulas = $mysqli->query($sql_formulas);
+    $res = mysqli_fetch_all($result_formulas, MYSQLI_ASSOC);
+    $timer = $res[0]['timer'];
+    $position_percentage = $res[0]['position_percentage'];
+
+    if ($scraper->addedHistId) {
+        resetHandicap($mysqli, null, $scraper->addedHistId);
+    }
+
+    foreach ($scraper->addedRacesId as $raceId) {
+        updatehptime($mysqli, $position_percentage, 0, $raceId);
+        distance_new(
+                $mysqli,
+                $position_percentage,
+                $scraper->addedRacesDistance[$raceId],
+                $raceId
+        );
+    }
     echo "Done!";
-
 }
-
 ?>
 
 <!-- Select date form -->
