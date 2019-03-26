@@ -440,8 +440,8 @@ function distance_new($mysqli, $position_percentage, $distance = 0, $raceId = 0)
  * Update handicap
  *
  * @param resource $mysqli
- * @param string $offset Example: "0, 100", or "5", or just "0"
- * @param array $histIds Array of hist_results ids
+ * @param string   $offset  Example: "0, 100", or "5", or just "0"
+ * @param array    $histIds Array of hist_results ids
  *
  * @return bool False in case of an error
  */
@@ -594,8 +594,7 @@ if (!function_exists('get_array_of_avgsec')) {
 if (!function_exists('newvalue')) {
     function newvalue($length, $distance, $orgdistance, $pos, $time)
     {
-
-        //Getting the postion of the horse
+        //Getting the position of the horse
         $pos = explode('/', $pos);
         $position = intval($pos[0]);
         $modifier = MODIFIER;
@@ -609,8 +608,6 @@ if (!function_exists('newvalue')) {
             }
             $newtime = $newtime(
                 $time,
-                $length,
-                $modifier,
                 $remainder
             );
         } else {
@@ -665,6 +662,10 @@ if (!function_exists('win_rounded_up')) {
     function win_rounded_up($time, $remainder)
     {
         global $timer;
+        global $logger;
+        if ($timer === null) {
+            $logger->log(__FUNCTION__.': $timer variable was not imported. The result will be calculated wrong', 'error');
+        }
         return $time + ($timer * $remainder);
     }
 }
@@ -674,6 +675,10 @@ if (!function_exists('win_rounded_down')) {
     function win_rounded_down($time, $remainder)
     {
         global $timer;
+        global $logger;
+        if ($timer === null) {
+            $logger->log(__FUNCTION__.': $timer variable was not imported. The result will be calculated wrong', 'error');
+        }
         return $time - ($timer * $remainder);
     }
 }
@@ -683,6 +688,10 @@ if (!function_exists('loses_rounded_up')) {
     function loses_rounded_up($time, $length, $modifier, $remainder)
     {
         global $timer;
+        global $logger;
+        if ($timer === null) {
+            $logger->log(__FUNCTION__.': $timer variable was not imported. The result will be calculated wrong', 'error');
+        }
         return $time + ($length * $modifier) + ($timer * $remainder);
     }
 }
@@ -692,6 +701,10 @@ if (!function_exists('loses_rounded_down')) {
     function loses_rounded_down($time, $length, $modifier, $remainder)
     {
         global $timer;
+        global $logger;
+        if ($timer === null) {
+            $logger->log(__FUNCTION__.': $timer variable was not imported. The result will be calculated wrong', 'error');
+        }
         return $time + ($length * $modifier) - ($timer * $remainder);
     }
 }
