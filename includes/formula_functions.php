@@ -384,7 +384,7 @@ function distance_new($mysqli, $position_percentage, $distance = 0, $raceId = 0)
 
                                 if ($per > $position_percentage) {
                                     // get rank
-                                    $rank = distanceRank(
+                                    $rank = distanceNewRank(
                                         $handicap->minihandi,
                                         $numsArray
                                     );
@@ -825,6 +825,26 @@ if (!function_exists('rating_system_new')) {
 
 if (!function_exists('distanceRank')) {
     function distanceRank($value, $array, $order = 0)
+    {
+        if ($order) {
+            sort($array);
+        } else {
+            rsort($array);
+        }
+
+        array_unshift($array, $value + 1);
+        $keys = array_keys($array, $value);
+
+        if (count($keys) == 0) {
+            return null;
+        }
+
+        return count($keys);
+    }
+}
+
+if (!function_exists('distanceNewRank')) {
+    function distanceNewRank($value, $array, $order = 0)
     {
         array_unique($array);
 
