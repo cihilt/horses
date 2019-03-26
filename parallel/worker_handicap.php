@@ -20,6 +20,7 @@ if (empty($data)) {
     $wLogger->log('No data passed. Exit', 'error');
 }
 $procId = arrayGet($data, 'proc_id', 0);
+$timer = arrayGet($data, 'timer');
 
 // offset
 $offsetStart = arrayGet($data, 'offset_start', '');

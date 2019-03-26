@@ -14,10 +14,12 @@ $execTime = null;
 $resetHandicap = true;
 $workersCount = WORKERS_COUNT;
 // position percentage
-$sqlFormulas = "SELECT `position_percentage` 
+$sqlFormulas = "SELECT `position_percentage`, `timer` 
                 FROM `tbl_formulas` WHERE id = 1";
 $resultFormulas = $mysqli->query($sqlFormulas);
-$posPercentage = $resultFormulas->fetch_row()[0];
+$formulasData = $resultFormulas->fetch_row();
+$posPercentage = $formulasData[0];
+$timer = $formulasData[1];
 // default algorithm
 $algorithmId = 0;
 
@@ -63,6 +65,7 @@ if(isset($_POST['run'])) {
             }
             $data = base64_encode(json_encode([
                 'proc_id'      => $i + 1,
+                'timer'        => $timer,
                 'offset_start' => $offsetStart,
                 'offset_limit' => $offsetLimit,
             ]));
