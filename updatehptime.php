@@ -584,4 +584,120 @@ if (empty($_GET['do'])) {
             echo '0 Results. <a href="./updatehptime.php">Click Here</a> to go back';
         }
     }
+
+    if ($action == 'distance_rank') {
+
+        if ($race_id_var_get == 0) {
+            echo 'Please select a RaceID first. <a href="./updatehptime.php">Click Here</a> to go back';
+            exit;
+        }
+
+        if (!isset($_GET['race_distance'])) {
+            echo '<form action="'.$_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING'].'" id="form" method="get">
+                        Please enter a value for distance:
+                      <input type="text" name="race_distance" id="race_distance" value="">
+                      <input type="button" value="Continue" onclick="window.location = getElementById(\'form\').getAttribute(\'action\') + \'&race_distance=\' + getElementById(\'race_distance\').value;">
+                  </form>';
+            exit;
+        } else {
+            $raceDistance = intval($_GET['race_distance']);
+        }
+
+        if ($race_id_var_get) {
+            $sql2 = "SELECT `race_id` FROM `tbl_races` WHERE `race_id`='$race_id_var_get' ORDER by `race_id` ASC";
+        }
+        $raceres = $mysqli->query($sql2);
+        if ($raceres->num_rows > 0) {
+            // output data of each row
+            while ($rowrc = $raceres->fetch_object()) {
+                $countofhorses = get_rows("`tbl_temp_hraces` WHERE `race_id`='$rowrc->race_id' AND `horse_fxodds`!='0'");
+                //Gavrichkov
+                // $countofhorses = 4 when race_id = 672, distance = 1200 !important
+                //Gavrichkov
+                echo 'All below results are for Race ID: ' . $rowrc->race_id . '<br /><br />';
+                echo '<a href="./updatehptime.php">Click Here</a> to go back<br /><br />';
+
+                $get_distances = $mysqli->query("SELECT DISTINCT CAST(race_distance AS UNSIGNED) AS racedist FROM tbl_hist_results WHERE `race_id`='$rowrc->race_id' AND `race_distance`='$raceDistance' ORDER by racedist ASC");
+                $updaterankavg = "";
+
+                while($dists = $get_distances->fetch_object()) {
+                    // echo '<b>$dists->racedist</b>: '.$dists->racedist.'<br>';
+                    $handitotal = get_handisum($rowrc->race_id, $dists->racedist);
+                    //echo $dists->racedist . ' ( ' . $handitotal . ' )<br />';
+                    $numbersarray = get_array_of_handicap($rowrc->race_id, $dists->racedist);
+                    $cnt = count($numbersarray);
+                    //Gavrichkov
+                    // handicap of Happy Clapper 1.18, 1.24,1.22. minimum is 1.18
+                    // handicap of Patrick Erin 1.3, 1.3, 1.34, 1.27, 1.26, 1.25, 1.24. minimum is 1.24
+                    // handicap of  Winx 1.24. minimum is 1.24
+                    // handicap of Unforgotten 1.24, 1.26. minimum is 1.24
+                    // so $numbersarray = {1.180, 1.240, 1.24, 1.24}  !important
+                    //cnt = 4
+                    //Gavrichkov
+                    $get_unique = $mysqli->query("SELECT DISTINCT `horse_id` FROM `tbl_hist_results` WHERE `race_id`='$rowrc->race_id' AND `race_distance`='$dists->racedist'");
+                    //Gavrichkov
+                    //$get_unique = { id of of Happy Clapper, id of Patrick Erin, id of Winx, id of unforgotten}
+                    //This is not important.
+                    //Gavrichkov
+                    $i = 1;
+                    while($ghorse = $get_unique->fetch_object()) {
+                        $checkodds = $mysqli->query("SELECT * FROM `tbl_temp_hraces` WHERE `race_id`='$rowrc->race_id' AND `horse_id`='$ghorse->horse_id'");
+                        $goddds = $checkodds->fetch_object();
+                        if(isset($goddds->horse_fxodds) && $goddds->horse_fxodds != "0") {
+                            $get_hist = $mysqli->query("SELECT MIN(handicap) as minihandi FROM `tbl_hist_results` WHERE `race_id`='$rowrc->race_id' AND `race_distance`='$dists->racedist' AND `horse_id`='$ghorse->horse_id'");
+                            //Gavrichkov
+                            //$get_hist = 1.18 when horse is Happy Clapper
+                            //$get_hist = 1.24 when horse is Patrick Erin
+                            //$get_hist = 1.24 when horse is Winx
+                            //$get_hist = 1.24 when horse is Unforgotten
+                            //Gavrichkov
+
+                            // echo '<b>$get_hist</b>: ' . "SELECT MIN(handicap) as minihandi FROM `tbl_hist_results` WHERE `race_id`='$rowrc->race_id' AND `race_distance`='$dists->racedist' AND `horse_id`='$ghorse->horse_id'".'<br>';
+                            while($shandi = $get_hist->fetch_object()) {
+                                // echo '<b>$shandi->minihandi</b>: '.$shandi->minihandi.'<br>';
+                                // echo '<b>$countofhorses</b>: '.$countofhorses.'<br>';
+                                //Gavrichkov
+                                // current $countofhorses = 4 $shandi->minihandi = 1.18
+                                //Gavrichkov
+                                if($countofhorses > 0) {
+                                    $per = ($cnt / $countofhorses) * 100;
+                                    // echo '<b>$per</b>: '.$per.'<br><br>';
+                                    if ($per > $position_percentage) {
+                                        //Gavrichkov
+                                        // get rank
+                                        //goto generate_rank function. line: 774
+                                        // $shandi->minihandi = 1.18, $numbersarray = [1.180,1.240,1.24, 1.24]
+                                        //Gavrichkov
+                                        $genrank = distanceNewRank($shandi->minihandi, $numbersarray);
+                                        //Gavrichkov
+                                        //generate_rank returns 2
+                                        // so $genrank = 2
+                                        //Gavrichkov
+
+                                        // echo '<b>$genrank</b>: '.$genrank.'<br>';
+                                        $horsedet = horse_details($ghorse->horse_id);
+                                        $updaterankavg = "UPDATE `tbl_hist_results` SET `rank`='$genrank' WHERE `race_id`='$rowrc->race_id' AND `race_distance`= '$dists->racedist' AND `horse_id`='$ghorse->horse_id'";
+                                        if($genrank) {
+                                            if($mysqli->query($updaterankavg)) {
+                                                echo $updaterankavg . "<br>";
+                                                echo "-------------------" . "<br>";
+                                            }
+                                            echo $horsedet->horse_name." Rank:".$genrank . "<br>";
+                                            echo "-------------------" . "<br>";
+                                        }
+                                    }
+                                }
+                            }
+                            ++$i;
+                        }
+                    }
+                }
+                if($updaterankavg) {
+                    $mysqli->query("UPDATE `tbl_races` SET `rank_status`='1' WHERE `race_id`='$rowrc->race_id'");
+                }
+            }
+
+        }
+        else { echo '0 Results';}
+    }
 }
