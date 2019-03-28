@@ -34,6 +34,18 @@ if (isset($_GET['race_id']) && $_GET['race_id']) {
     $race_id_var_get = $_GET['race_id'];
 }
 
+if (isset($_POST['singlebutton'])) {
+    $secpoint = $_POST['secpoint'];
+    $timer = $_POST['timer'];
+    $position_percentage = $_POST['positionpercentage'];
+    $sql = "UPDATE `tbl_formulas` SET `secpoint`=".$secpoint.",`timer`=".$timer
+        .",`position_percentage`=".$position_percentage." WHERE id = 1";
+    $result = $mysqli->query($sql);
+    if ($result) {
+        echo "The values were successfully updated";
+    }
+}
+
 if (empty($_GET['do'])) {
     ?>
     <center>
@@ -41,6 +53,49 @@ if (empty($_GET['do'])) {
         This page allows you to either reset and apply the formulas. We need this page because after retrieving the horses, we need to apply our algorithm. <br />
         Start by selecting the raceID. <br />
         If you want to reset all, beware that this can take up to 1 hour, this can be done by going to the console version<br /><br />
+
+        <form class="form-horizontal" method="post">
+            <fieldset>
+                <!-- Form Name -->
+                <legend>Formula Values</legend>
+
+                <!-- Text input-->
+                <div class="form-group">
+                    <label class="col-md-4 control-label" for="secpoint">secpoint</label>
+                    <div class="col-md-4">
+                        <input id="secpoint" name="secpoint" type="text" placeholder="" class="form-control input-md" required="" value="<?php echo $secpoint; ?>">
+
+                    </div>
+                </div>
+
+                <!-- Text input-->
+                <div class="form-group">
+                    <label class="col-md-4 control-label" for="positionpercentage">Position  Percentage</label>
+                    <div class="col-md-4">
+                        <input id="positionpercentage" name="positionpercentage" type="text" placeholder="" class="form-control input-md" required="" value="<?php echo $position_percentage; ?>">
+
+                    </div>
+                </div>
+
+                <!-- Text input-->
+                <div class="form-group">
+                    <label class="col-md-4 control-label" for="timer">timer</label>
+                    <div class="col-md-4">
+                        <input id="timer" name="timer" type="text" placeholder="" class="form-control input-md" required="" value="<?php echo $timer; ?>">
+
+                    </div>
+                </div>
+
+                <!-- Button -->
+                <div class="form-group">
+                    <label class="col-md-4 control-label" for="singlebutton"></label>
+                    <div class="col-md-4">
+                        <button id="singlebutton" name="singlebutton" class="btn btn-primary" value="submit">Update Values</button>
+                    </div>
+                </div>
+
+            </fieldset>
+        </form>
 
         <?php
         $race_id_var = '';
